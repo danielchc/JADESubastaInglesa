@@ -21,39 +21,16 @@ public class ModeloSubastas extends AbstractTableModel {
 
     @Override
     public String getColumnName(int col) {
-        if (col == 0) return "Titulo";
-        if (col == 1) return "Prezo";
-        if (col == 2) return "Incremento";
-        if (col == 3) return "Ganador";
-        if (col == 4) return "Estado";
-        return "";
+        return (new String[]{"Titulo","Prezo","Incremento","Ganador","Interesados","Estado"})[col];
     }
 
     public Class getColumnClass(int col) {
-        Class clase = null;
-        switch (col) {
-            case 0:
-                clase = java.lang.String.class;
-                break;
-            case 1:
-                clase = java.lang.Integer.class;
-                break;
-            case 2:
-                clase = java.lang.Integer.class;
-                break;
-            case 3:
-                clase = java.lang.String.class;
-                break;
-            case 4:
-                clase = java.lang.String.class;
-                break;
-        }
-        return clase;
+        return (new Class[]{String.class, Integer.class, Integer.class, String.class,Integer.class, String.class})[col];
     }
 
     @Override
     public int getColumnCount() {
-        return 5;
+        return 6;
     }
 
     @Override
@@ -77,7 +54,11 @@ public class ModeloSubastas extends AbstractTableModel {
                 }
                 break;
             case 4:
+                resultado = getByIndex(row).getPoxadores().size();
+                break;
+            case 5:
                 resultado = getByIndex(row).isFinalizada() ? "Finalizada" : "En curso";
+                break;
         }
         return resultado;
 

@@ -18,34 +18,11 @@ public class ModeloObxectivos extends AbstractTableModel {
 
     @Override
     public String getColumnName(int col) {
-        if (col == 0) return "Titulo";
-        if (col == 1) return "Prezo Maximo";
-        if (col == 2) return "Prezo Actual";
-        if (col == 3) return "Ganador Actual";
-        if (col == 4) return "Estado";
-        return "";
+        return (new String[]{"Titulo","Prezo Maximo","Poxa Actual","Ganador Actual","Estado"})[col];
     }
 
     public Class getColumnClass(int col) {
-        Class clase = null;
-        switch (col) {
-            case 0:
-                clase = java.lang.String.class;
-                break;
-            case 1:
-                clase = java.lang.Integer.class;
-                break;
-            case 2:
-                clase = java.lang.Integer.class;
-                break;
-            case 3:
-                clase = java.lang.String.class;
-                break;
-            case 4:
-                clase = java.lang.String.class;
-                break;
-        }
-        return clase;
+        return (new Class[]{String.class, Integer.class, Integer.class, String.class, String.class})[col];
     }
 
     @Override
@@ -74,20 +51,8 @@ public class ModeloObxectivos extends AbstractTableModel {
                 }
                 break;
             case 4:
-                switch (getByIndex(row).getEstadoObxectivo()){
-                    case ESPERANDO:
-                        resultado="Esperando";
-                        break;
-                    case GANADA:
-                        resultado="Ganada";
-                        break;
-                    case EN_CURSO:
-                        resultado="En curso";
-                        break;
-                    case RETIRADO:
-                        resultado="Retirado";
-                        break;
-                };
+                resultado=new String[]{"Esperando","Ganada","En curso","Retirado"}[getByIndex(row).getEstadoObxectivo().ordinal()];
+                break;
         }
         return resultado;
 

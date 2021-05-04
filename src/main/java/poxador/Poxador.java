@@ -21,6 +21,21 @@ public class Poxador extends Agent {
         System.out.println(String.format("[%s] %s", getName(), msg));
     }
 
+    public void engadirObxectivo(Obxectivo obxectivo) {
+        obxectivos.put(obxectivo.getTitulo(), obxectivo);
+        guiPoxador.engadirObxectivo(obxectivo);
+    }
+
+    public boolean existeObxectivo(String text) {
+        return obxectivos.containsKey(text);
+    }
+
+    public void eliminarObxectivo(String obxectivo) {
+        obxectivos.remove(obxectivo);
+        guiPoxador.eliminarObxectivo(obxectivo);
+    }
+
+
 
     @Override
     public void setup() {
@@ -31,15 +46,14 @@ public class Poxador extends Agent {
 
     }
 
-
-
+    @Override
     protected void takeDown() {
+        if(guiPoxador!=null)guiPoxador.dispose();
         try {
             DFService.deregister(this);
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
-        if(guiPoxador!=null)guiPoxador.dispose();
     }
 
     private void rexistrarServizo() {
@@ -57,22 +71,9 @@ public class Poxador extends Agent {
         addBehaviour(new ConsultarSubastas());
     }
 
-    public void engadirObxectivo(Obxectivo obxectivo) {
-        obxectivos.put(obxectivo.getTitulo(), obxectivo);
-        guiPoxador.engadirObxectivo(obxectivo);
-    }
 
-    public boolean existeObxectivo(String text) {
-        return obxectivos.containsKey(text);
-    }
-
-    public void eliminarObxectivo(String obxectivo) {
-        obxectivos.remove(obxectivo);
-        guiPoxador.eliminarObxectivo(obxectivo);
-    }
 
     private class ConsultarSubastas extends CyclicBehaviour {
-
         @Override
         public void action() {
             MessageTemplate mt = MessageTemplate.or(
@@ -105,6 +106,8 @@ public class Poxador extends Agent {
 
         if (!obxectivos.containsKey(titulo)) {
             proposta.setPerformative(ACLMessage.REFUSE);
+            //REVISAR ESTO
+            proposta.setConversationId("subasta-baixa");
             myAgent.send(proposta);
             return;
         }

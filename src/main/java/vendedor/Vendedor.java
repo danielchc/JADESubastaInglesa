@@ -28,7 +28,17 @@ public class Vendedor extends Agent {
     private void imprimirMensaxe(String msg){
         System.out.println(String.format("[%s] %s",getName(),msg));
     }
-    
+
+    public void engadirSubasta(Subasta subasta) {
+        this.subastasDisponibles.put(subasta.getTitulo(), subasta);
+        guiVendedor.engadirSubasta(subasta);
+        imprimirMensaxe("Subasta engadida " + subasta.getTitulo() + " por " + subasta.getPrezo());
+    }
+
+    public boolean existeSubasta(Subasta subasta) {
+        return subastasDisponibles.containsKey(subasta.getTitulo());
+    }
+
     @Override
     public void setup() {
         this.subastasDisponibles = new HashMap<>();
@@ -40,6 +50,7 @@ public class Vendedor extends Agent {
 
     }
 
+    @Override
     protected void takeDown() {
         try {
             DFService.deregister(this);
@@ -47,16 +58,6 @@ public class Vendedor extends Agent {
             fe.printStackTrace();
         }
         if (guiVendedor != null) guiVendedor.dispose();
-    }
-
-    public void engadirSubasta(Subasta subasta) {
-        this.subastasDisponibles.put(subasta.getTitulo(), subasta);
-        guiVendedor.engadirSubasta(subasta);
-        imprimirMensaxe("Subasta engadida " + subasta.getTitulo() + " por " + subasta.getPrezo());
-    }
-
-    public boolean existeSubasta(Subasta subasta) {
-        return subastasDisponibles.containsKey(subasta.getTitulo());
     }
 
     private void rexistrarServizo() {
@@ -144,7 +145,7 @@ public class Vendedor extends Agent {
 
                     if (resposta.getPerformative() == ACLMessage.PROPOSE)
                         propostaPoxador(resposta, subasta, prezo);
-                    else if (resposta.getPerformative() == ACLMessage.REFUSE && resposta.getConversationId().equals("subasta-baixa"))
+                    else if (resposta.getPerformative() == ACLMessage.REFUSE)
                         retirarPoxador(resposta, subasta, prezo);
                     respostasPendentes--;
 
@@ -189,8 +190,10 @@ public class Vendedor extends Agent {
         }
 
         private void retirarPoxador(ACLMessage resposta, Subasta subasta, Integer prezoRecibido) {
-
             subasta.eliminarPoxador(resposta.getSender());
+
+            if(!resposta.getConversationId().equals("subasta-baixa"))
+                return;
 
             ACLMessage notificacion = new ACLMessage(ACLMessage.INFORM);
             notificacion.addReceiver(resposta.getSender());

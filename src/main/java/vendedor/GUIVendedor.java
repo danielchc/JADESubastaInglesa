@@ -10,17 +10,18 @@ public class GUIVendedor extends JFrame {
     private final javax.swing.JLabel lblIncremento;
     private final javax.swing.JScrollPane jScrollPane2;
     private final javax.swing.JScrollPane jScrollPane3;
-    private final javax.swing.JTable jTable2;
+    private final javax.swing.JTable tableSubastasActivas;
     private final javax.swing.JTextField tfNomeLibro;
     private final javax.swing.JFormattedTextField tfIncremento;
     private final javax.swing.JFormattedTextField tfPrezo;
-    private final ModeloSubastas modeloSubastas;
     private final JLabel jLabel1;
+    private final ModeloSubastas modeloSubastas;
 
     public GUIVendedor(Vendedor vendedor) {
         super("Practica 6 - Subastador");
-        modeloSubastas = new ModeloSubastas();
         setResizable(false);
+        setSize(500,500);
+        modeloSubastas = new ModeloSubastas();
         jScrollPane2 = new javax.swing.JScrollPane();
         btnEngadir = new javax.swing.JButton();
         tfNomeLibro = new javax.swing.JTextField();
@@ -31,7 +32,7 @@ public class GUIVendedor extends JFrame {
         lblIncremento = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jLabel1 = new JLabel();
-        jTable2 = new javax.swing.JTable();
+        tableSubastasActivas = new javax.swing.JTable();
 
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -61,18 +62,23 @@ public class GUIVendedor extends JFrame {
         lblPrezo.setText("Prezo");
         lblIncremento.setText("Incremento");
         jLabel1.setText("Subastas");
+        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
 
         tfPrezo.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
         tfIncremento.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
 
 
-        jTable2.setModel(modeloSubastas);
-        jScrollPane3.setViewportView(jTable2);
+        tableSubastasActivas.setModel(modeloSubastas);
+        tableSubastasActivas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        jScrollPane3.setViewportView(tableSubastasActivas);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(layout.createSequentialGroup()
+                        .addGap(265, 265, 265)
+                        .addComponent(jLabel1)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap(52, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
@@ -97,7 +103,9 @@ public class GUIVendedor extends JFrame {
         layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
-                                .addGap(64, 64, 64)
+                                .addContainerGap()
+                                .addComponent(jLabel1)
+                                .addGap(17, 17, 17)
                                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 375, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addGroup(layout.createSequentialGroup()

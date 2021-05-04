@@ -21,6 +21,7 @@ public class GUIPoxador extends JFrame {
     public GUIPoxador(Poxador poxador){
         super("Practica 6 - "+poxador.getName());
         setResizable(false);
+        setSize(500,500);
         this.poxador=poxador;
         this.modeloObxectivos=new ModeloObxectivos();
 
@@ -37,6 +38,7 @@ public class GUIPoxador extends JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         tablaObxectivos.setModel(modeloObxectivos);
+        tablaObxectivos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(tablaObxectivos);
 
         btnEngadir.setText("Engadir");

@@ -1,4 +1,4 @@
-
+package vendedor;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -10,6 +10,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import vendedor.GUIVendedor;
 
 
 import javax.swing.*;
@@ -31,22 +32,20 @@ public class Vendedor extends Agent {
     public void setup() {
         this.subastasDisponibles = new HashMap<>();
         this.poxadoresDisponibles = new ArrayList<>();
-        /*Temporal*/
-        this.subastasDisponibles.put("papito-la-nueva-esperanza", new Subasta("papito-la-nueva-esperanza", 10, 5));
-        this.subastasDisponibles.put("el-despertar-del-papo", new Subasta("el-despertar-del-papo", 10, 5));
-        this.subastasDisponibles.put("papo-en-la-fabrica-chocolate", new Subasta("papo-en-la-fabrica-chocolate", 10, 5));
+        rexistrarServizo();
 
-        registrarServicio();
-
-        JFrame guiVendedor=new GUIVendedor();
+        JFrame guiVendedor=new GUIVendedor(this);
         guiVendedor.setVisible(true);
-
-
 
     }
 
+    public void engadirSubasta(Subasta subasta){
+        this.subastasDisponibles.put(subasta.getTitulo(), subasta);
+        System.out.println("Subasta engadida " +subasta.getTitulo());
+    }
 
-    private void registrarServicio() {
+
+    private void rexistrarServizo() {
         DFAgentDescription dfdAgent = new DFAgentDescription();
         dfdAgent.setName(getAID());
         ServiceDescription serviceDescription = new ServiceDescription();
@@ -63,6 +62,10 @@ public class Vendedor extends Agent {
 
     public void tocar() {
         System.out.println("TOCOOOOUUUUUU");
+    }
+
+    public boolean existeSubasta(Subasta subasta) {
+        return subastasDisponibles.containsKey(subasta.getTitulo());
     }
 
 
@@ -157,6 +160,7 @@ public class Vendedor extends Agent {
 
         private void enviarNotification() {
             for (Subasta subasta : subastasDisponibles.values()) {
+                System.out.println("Informar subasta "+subasta.getTitulo());
                 ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
                 poxadoresDisponibles.forEach(cfp::addReceiver);
                 cfp.setConversationId("subasta-notificacion");

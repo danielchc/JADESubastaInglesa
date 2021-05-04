@@ -1,3 +1,5 @@
+package vendedor;
+
 import jade.core.AID;
 
 import java.util.ArrayList;

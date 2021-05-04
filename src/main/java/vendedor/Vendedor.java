@@ -145,15 +145,13 @@ public class Vendedor extends Agent {
                 String titulo = partes[0];
                 Integer prezo = Integer.parseInt(partes[1]);
                 if (!subastasDisponibles.containsKey(titulo)) {
-                    System.out.println("NAOOO NAOOO NAOOOOO");
                     return;
                 }
                 Subasta subasta = subastasDisponibles.get(titulo);
 
-
                 if (resposta.getPerformative() == ACLMessage.PROPOSE)
                     propostaPoxador(resposta, subasta, prezo);
-                else if (resposta.getPerformative() == ACLMessage.REFUSE)
+                else if (resposta.getPerformative() == ACLMessage.REFUSE && resposta.getConversationId().equals("subasta-baixa"))
                     retirarPoxador(resposta, subasta, prezo);
 
                 respostasPendentes--;
@@ -196,9 +194,7 @@ public class Vendedor extends Agent {
         }
 
         private void retirarPoxador(ACLMessage resposta, Subasta subasta, Integer prezoRecibido) {
-            if (!resposta.getConversationId().equals("subasta-baixa"))
-                return;
-
+            
             subasta.eliminarPoxador(resposta.getSender());
 
             ACLMessage notificacion = new ACLMessage(ACLMessage.INFORM);

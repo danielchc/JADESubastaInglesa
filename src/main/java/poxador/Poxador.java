@@ -8,18 +8,36 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import vendedor.GUIVendedor;
 
 import java.util.HashMap;
 
 public class Poxador extends Agent {
 
-    private HashMap<String, Integer> obxectivos;
+    private HashMap<String, Obxectivo> obxectivos;
+    private PoxadorEventManager poxadorEventManager;
 
     @Override
     public void setup() {
+        poxadorEventManager=new PoxadorEventManager() {
+            @Override
+            public void actualizarObxectivo(Obxectivo obxectivo) {
+
+            }
+
+            @Override
+            public void engadirObxectivo(Obxectivo obxectivo) {
+
+            }
+        };
         obxectivos=new HashMap<>();
-        obxectivos.put("papo",100);
+        obxectivos.put("papo",new Obxectivo("papo",10));
         rexistrarServizo();
+    }
+
+    public void engadirObxectivo(Obxectivo obxectivo){
+        obxectivos.put(obxectivo.getTitulo(),obxectivo);
+        poxadorEventManager.engadirObxectivo(obxectivo);
     }
 
     protected void takeDown() {
@@ -79,12 +97,11 @@ public class Poxador extends Agent {
 
 
         if(!obxectivos.containsKey(titulo)){
-            System.out.println("Non me interesa");
             proposta.setPerformative(ACLMessage.REFUSE);
             myAgent.send(proposta);
             return;
         }
-        if(obxectivos.get(titulo)>=prezo){
+        if(obxectivos.get(titulo).getPrezoMaximo()>=prezo){
             proposta.setPerformative(ACLMessage.PROPOSE);
         }else{
             proposta.setPerformative(ACLMessage.REFUSE);
@@ -95,13 +112,18 @@ public class Poxador extends Agent {
 
     private void rondaFinalizada(String[] contido, ACLMessage resposta) {
         String titulo = contido[0];
+        //Non ten sentido informar de subastas que non estou involucrado
+        if(!obxectivos.containsKey(titulo))
+            return;
         int prezo = Integer.parseInt(contido[1]);
         if (resposta.getConversationId().equals("subasta-ronda")) {
             String ganador = contido[2];
             System.out.println("Ganou a ronda de " + titulo + " o axente " + ganador + " por " + prezo);
-            //Comprobar se son eu
+
+            obxectivos.get(titulo).setGanadorActual(ganador);
+
         } else if (resposta.getConversationId().equals("subasta-baixa")) {
-            System.out.println("Deuse de baixa da subasta " + resposta.getSender().getName() + " para: " + titulo + " cuando se poxaba por " + prezo);
+            System.out.println("Deuse de baixa da subasta " + resposta.getSender().getName() + " de " + titulo + " cuando se poxaba por " + prezo);
         }
 
     }

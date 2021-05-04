@@ -10,10 +10,8 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import vendedor.GUIVendedor;
 
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,7 +23,7 @@ public class Vendedor extends Agent {
     private HashMap<String, Subasta> subastasDisponibles;
     private ArrayList<AID> poxadoresDisponibles;
     private GUIVendedor guiVendedor;
-    private EventManager eventManager;
+    private SubastadorEventManager subastadorEventManager;
 
 
     @Override
@@ -35,7 +33,7 @@ public class Vendedor extends Agent {
         rexistrarServizo();
 
         GUIVendedor guiVendedor=new GUIVendedor(this);
-        eventManager=guiVendedor.getEventManager();
+        subastadorEventManager =guiVendedor.getEventManager();
         guiVendedor.setVisible(true);
 
     }
@@ -51,7 +49,7 @@ public class Vendedor extends Agent {
 
     public void engadirSubasta(Subasta subasta){
         this.subastasDisponibles.put(subasta.getTitulo(), subasta);
-        eventManager.engadirSubasta(subasta);
+        subastadorEventManager.engadirSubasta(subasta);
         System.out.println("Subasta engadida " +subasta.getTitulo());
     }
 
@@ -109,7 +107,7 @@ public class Vendedor extends Agent {
                     finalizacion.setContent(String.format("%s;%d",subasta.getTitulo(),(subasta.prezoAnterior())));
                     subasta.setFinalizada(true);
                     subasta.setPrezo(subasta.prezoAnterior());
-                    eventManager.actualizarSubasta(subasta);
+                    subastadorEventManager.actualizarSubasta(subasta);
                     myAgent.send(finalizacion);
                 }
             }
@@ -179,7 +177,7 @@ public class Vendedor extends Agent {
                 subasta.engadirIncremento();
             }
 
-            eventManager.actualizarSubasta(subasta);
+            subastadorEventManager.actualizarSubasta(subasta);
 
             ACLMessage notificacion = new ACLMessage(ACLMessage.INFORM);
             notificacion.addReceiver(resposta.getSender());

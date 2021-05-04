@@ -1,7 +1,6 @@
 package vendedor;
 
-public interface EventManager {
+public interface SubastadorEventManager {
     void actualizarSubasta(Subasta subasta);
     void engadirSubasta(Subasta subasta);
-    void eliminarSubasta(String subasta);
 }

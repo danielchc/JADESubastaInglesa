@@ -14,13 +14,13 @@ public class GUIVendedor extends JFrame {
     private javax.swing.JTextField tfNomeLibro;
     private javax.swing.JTextField tfIncremento;
     private javax.swing.JTextField tfPrezo;
-    private EventManager eventManager;
+    private SubastadorEventManager subastadorEventManager;
 
     public GUIVendedor(Vendedor vendedor){
-        super("Practica 8");
+        super("Practica 8 - Subastador");
         ModeloSubastas modeloSubastas=new ModeloSubastas();
         setResizable(false);
-        eventManager=new EventManager() {
+        subastadorEventManager =new SubastadorEventManager() {
             @Override
             public void actualizarSubasta(Subasta subasta) {
                 modeloSubastas.actualizarSubasta(subasta);
@@ -28,11 +28,6 @@ public class GUIVendedor extends JFrame {
             @Override
             public void engadirSubasta(Subasta subasta) {
                 modeloSubastas.engadirSubasta(subasta);
-            }
-
-            @Override
-            public void eliminarSubasta(String subastaTitulo) {
-                modeloSubastas.eliminarSubasta(subastaTitulo);
             }
         };
 
@@ -129,7 +124,7 @@ public class GUIVendedor extends JFrame {
 
         pack();
     }
-    public EventManager getEventManager(){
-        return eventManager;
+    public SubastadorEventManager getEventManager(){
+        return subastadorEventManager;
     }
 }

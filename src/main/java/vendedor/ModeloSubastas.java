@@ -8,33 +8,45 @@ import java.util.LinkedHashMap;
 import java.util.Optional;
 
 public class ModeloSubastas extends AbstractTableModel {
-    private LinkedHashMap<String,Subasta> subastas;
-    public ModeloSubastas(){
-        subastas=new LinkedHashMap<>();
+    private LinkedHashMap<String, Subasta> subastas;
+
+    public ModeloSubastas() {
+        subastas = new LinkedHashMap<>();
     }
+
     @Override
     public int getRowCount() {
         return subastas.size();
     }
 
     @Override
-    public String getColumnName(int col){
-        if(col==0) return "Titulo";
-        if(col==1) return "Prezo";
-        if(col==2) return "Incremento";
-        if(col==3) return "Ganador";
-        if(col==4) return "Estado";
+    public String getColumnName(int col) {
+        if (col == 0) return "Titulo";
+        if (col == 1) return "Prezo";
+        if (col == 2) return "Incremento";
+        if (col == 3) return "Ganador";
+        if (col == 4) return "Estado";
         return "";
     }
 
-    public Class getColumnClass(int col){
-        Class clase=null;
-        switch (col){
-            case 0: clase= java.lang.String.class; break;
-            case 1: clase= java.lang.Integer.class; break;
-            case 2: clase=java.lang.Integer.class; break;
-            case 3: clase=java.lang.String.class; break;
-            case 4: clase=java.lang.String.class; break;
+    public Class getColumnClass(int col) {
+        Class clase = null;
+        switch (col) {
+            case 0:
+                clase = java.lang.String.class;
+                break;
+            case 1:
+                clase = java.lang.Integer.class;
+                break;
+            case 2:
+                clase = java.lang.Integer.class;
+                break;
+            case 3:
+                clase = java.lang.String.class;
+                break;
+            case 4:
+                clase = java.lang.String.class;
+                break;
         }
         return clase;
     }
@@ -46,38 +58,46 @@ public class ModeloSubastas extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int row, int col) {
-        Object resultado=null;
-        switch (col){
-            case 0: resultado= getByIndex(row).getTitulo(); break;
-            case 1: resultado= getByIndex(row).getPrezo(); break;
-            case 2: resultado= getByIndex(row).getIncremento();break;
+        Object resultado = null;
+        switch (col) {
+            case 0:
+                resultado = getByIndex(row).getTitulo();
+                break;
+            case 1:
+                resultado = getByIndex(row).getPrezo();
+                break;
+            case 2:
+                resultado = getByIndex(row).getIncremento();
+                break;
             case 3:
-                if(getByIndex(row).getGanadorActual()!=null){
-                    resultado=getByIndex(row).getGanadorActual().getName().toString();
-                }else{
-                    resultado="<Sen ganador>";
+                if (getByIndex(row).getGanadorActual() != null) {
+                    resultado = getByIndex(row).getGanadorActual().getName().toString();
+                } else {
+                    resultado = "<Sen ganador>";
                 }
                 break;
             case 4:
-                resultado=getByIndex(row).isFinalizada()?"Finalizada":"En curso";
+                resultado = getByIndex(row).isFinalizada() ? "Finalizada" : "En curso";
         }
         return resultado;
 
     }
+
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         return false;
     }
 
     public void engadirSubasta(Subasta subasta) {
-        subastas.put(subasta.getTitulo(),subasta);
+        subastas.put(subasta.getTitulo(), subasta);
         fireTableDataChanged();
     }
-    private Subasta getByIndex(int i){
+
+    private Subasta getByIndex(int i) {
         return (Subasta) subastas.values().toArray()[i];
     }
 
     public void actualizarSubasta(Subasta subasta) {
-        subastas.replace(subasta.getTitulo(),subasta);
+        subastas.replace(subasta.getTitulo(), subasta);
         fireTableDataChanged();
     }
 

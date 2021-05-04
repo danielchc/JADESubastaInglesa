@@ -85,7 +85,7 @@ public class Vendedor extends Agent {
 
             DFAgentDescription dfAgentDescription = new DFAgentDescription();
             ServiceDescription serviceDescription = new ServiceDescription();
-            serviceDescription.setType("subata-poxador");
+            serviceDescription.setType("subasta-poxador");
             dfAgentDescription.addServices(serviceDescription);
             poxadoresDisponibles = new ArrayList<>();
             try {
@@ -115,6 +115,7 @@ public class Vendedor extends Agent {
 
             for (String subasta:subastasTerminadas){
                 subastasDisponibles.remove(subasta);
+                eventManager.eliminarSubasta(subasta);
             }
 
         }
@@ -137,25 +138,24 @@ public class Vendedor extends Agent {
                 enviarNotification();
             } else if (paso == 1) {
                 ACLMessage resposta = myAgent.receive(mt);
-                if (resposta == null) {
+                if (resposta != null) {
+                    String[] partes = resposta.getContent().split(";");
+                    String titulo = partes[0];
+                    Integer prezo = Integer.parseInt(partes[1]);
+                    if (!subastasDisponibles.containsKey(titulo)) {
+                        return;
+                    }
+                    Subasta subasta = subastasDisponibles.get(titulo);
+
+                    if (resposta.getPerformative() == ACLMessage.PROPOSE)
+                        propostaPoxador(resposta, subasta, prezo);
+                    else if (resposta.getPerformative() == ACLMessage.REFUSE && resposta.getConversationId().equals("subasta-baixa"))
+                        retirarPoxador(resposta, subasta, prezo);
+                    respostasPendentes--;
+
+                }else{
                     block();
-                    return; //REVISAR ESTO XD
                 }
-                String[] partes = resposta.getContent().split(";");
-                String titulo = partes[0];
-                Integer prezo = Integer.parseInt(partes[1]);
-                if (!subastasDisponibles.containsKey(titulo)) {
-                    return;
-                }
-                Subasta subasta = subastasDisponibles.get(titulo);
-
-                if (resposta.getPerformative() == ACLMessage.PROPOSE)
-                    propostaPoxador(resposta, subasta, prezo);
-                else if (resposta.getPerformative() == ACLMessage.REFUSE && resposta.getConversationId().equals("subasta-baixa"))
-                    retirarPoxador(resposta, subasta, prezo);
-
-                respostasPendentes--;
-
             }
         }
 
@@ -194,7 +194,7 @@ public class Vendedor extends Agent {
         }
 
         private void retirarPoxador(ACLMessage resposta, Subasta subasta, Integer prezoRecibido) {
-            
+
             subasta.eliminarPoxador(resposta.getSender());
 
             ACLMessage notificacion = new ACLMessage(ACLMessage.INFORM);

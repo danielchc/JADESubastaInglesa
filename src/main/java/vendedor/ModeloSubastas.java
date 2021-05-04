@@ -51,7 +51,7 @@ public class ModeloSubastas extends AbstractTableModel {
             case 2: resultado= getByIndex(row).getIncremento();break;
             case 3:
                 if(getByIndex(row).getGanadorActual()!=null){
-                    resultado=getByIndex(row).getGanadorActual().toString();
+                    resultado=getByIndex(row).getGanadorActual().getName().toString();
                 }else{
                     resultado="<Sen ganador>";
                 }
@@ -74,6 +74,11 @@ public class ModeloSubastas extends AbstractTableModel {
 
     public void actualizarSubasta(Subasta subasta) {
         subastas.replace(subasta.getTitulo(),subasta);
+        fireTableDataChanged();
+    }
+
+    public void eliminarSubasta(String subastaTitulo) {
+        subastas.remove(subastaTitulo);
         fireTableDataChanged();
     }
 }

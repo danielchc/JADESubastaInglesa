@@ -17,8 +17,9 @@ public class Poxador extends Agent {
 
     @Override
     public void setup() {
-
-
+        obxectivos=new HashMap<>();
+        obxectivos.put("papo",100);
+        rexistrarServizo();
     }
 
     protected void takeDown() {
@@ -41,6 +42,7 @@ public class Poxador extends Agent {
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
+        addBehaviour(new ConsultarSubastas());
     }
 
     private class ConsultarSubastas extends CyclicBehaviour {
@@ -53,38 +55,60 @@ public class Poxador extends Agent {
                             MessageTemplate.MatchPerformative(ACLMessage.REQUEST))
             );
             ACLMessage resposta = myAgent.receive(mt);
-            if (resposta == null) {
+
+            if (resposta != null) {
+                String contido[] = resposta.getContent().split(";");
+                if (resposta.getPerformative() == ACLMessage.CFP)
+                    propostaPoxa(contido,resposta, myAgent);
+                else if (resposta.getPerformative() == ACLMessage.REQUEST)
+                    propostaGanadora(contido,resposta);
+                else if (resposta.getPerformative() == ACLMessage.INFORM)
+                    rondaFinalizada(contido,resposta);
+            }else{
                 block();
-                return;
-                //Comprobar esto xddd
             }
-            if (resposta.getPerformative() == ACLMessage.CFP)
-                propostaPoxa(resposta, myAgent);
-            else if (resposta.getPerformative() == ACLMessage.REQUEST)
-                propostaGanadora(resposta);
-            else if (resposta.getPerformative() == ACLMessage.INFORM)
-                rondaFinalizada(resposta);
 
         }
     }
 
-    private void rondaFinalizada(ACLMessage resposta) {
-        String contido[] = resposta.getContent().split(";");
+    private void propostaPoxa(String[] contido, ACLMessage resposta, Agent myAgent) {
+        String titulo = contido[0];
+        int prezo = Integer.parseInt(contido[1]);
+        ACLMessage proposta=resposta.createReply();
+        proposta.setContent(String.format("%s;%d",titulo,prezo));
+
+
+        if(!obxectivos.containsKey(titulo)){
+            System.out.println("Non me interesa");
+            proposta.setPerformative(ACLMessage.REFUSE);
+            myAgent.send(proposta);
+            return;
+        }
+        if(obxectivos.get(titulo)>=prezo){
+            proposta.setPerformative(ACLMessage.PROPOSE);
+        }else{
+            proposta.setPerformative(ACLMessage.REFUSE);
+            proposta.setConversationId("subasta-baixa");
+        }
+        myAgent.send(proposta);
+    }
+
+    private void rondaFinalizada(String[] contido, ACLMessage resposta) {
         String titulo = contido[0];
         int prezo = Integer.parseInt(contido[1]);
         if (resposta.getConversationId().equals("subasta-ronda")) {
             String ganador = contido[2];
-            System.out.println("Ganou a ronda de " + titulo + " o axente" + ganador + " por " + prezo);
+            System.out.println("Ganou a ronda de " + titulo + " o axente " + ganador + " por " + prezo);
+            //Comprobar se son eu
         } else if (resposta.getConversationId().equals("subasta-baixa")) {
-            System.out.println("Se ha dado de baja en la subasta " + resposta.getSender().getName() + " para: " + titulo + " cuando se poxaba por " + prezo);
+            System.out.println("Deuse de baixa da subasta " + resposta.getSender().getName() + " para: " + titulo + " cuando se poxaba por " + prezo);
         }
 
     }
 
-    private void propostaGanadora(ACLMessage resposta) {
-        String contido[] = resposta.getContent().split(";");
+    private void propostaGanadora(String[] contido, ACLMessage resposta) {
         String titulo = contido[0];
         int prezo = Integer.parseInt(contido[1]);
-        System.out.println("Ganaches a poxa + " + titulo + " por " + prezo);
+        System.out.println("Ganaches a poxa " + titulo + " por " + prezo);
     }
 }

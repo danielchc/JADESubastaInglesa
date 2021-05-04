@@ -29,6 +29,11 @@ public class GUIVendedor extends JFrame {
             public void engadirSubasta(Subasta subasta) {
                 modeloSubastas.engadirSubasta(subasta);
             }
+
+            @Override
+            public void eliminarSubasta(String subastaTitulo) {
+                modeloSubastas.eliminarSubasta(subastaTitulo);
+            }
         };
 
         jScrollPane2 = new javax.swing.JScrollPane();

@@ -102,22 +102,17 @@ public class Vendedor extends Agent {
         }
 
         private void comprobarGanadores() {
-            ArrayList<String> subastasTerminadas=new ArrayList<String>();
             for(Subasta subasta:subastasDisponibles.values()){
-                if(subasta.getPoxadores().size()<=1 && subasta.getGanadorActual()!=null){
+                if(subasta.getPoxadores().size()<=1 && subasta.getGanadorActual()!=null && !subasta.isFinalizada() ){
                     ACLMessage finalizacion=new ACLMessage(ACLMessage.REQUEST);
                     finalizacion.addReceiver(subasta.getGanadorActual());
                     finalizacion.setContent(String.format("%s;%d",subasta.getTitulo(),(subasta.prezoAnterior())));
-                    subastasTerminadas.add(subasta.getTitulo());
+                    subasta.setFinalizada(true);
+                    subasta.setPrezo(subasta.prezoAnterior());
+                    eventManager.actualizarSubasta(subasta);
                     myAgent.send(finalizacion);
                 }
             }
-
-            for (String subasta:subastasTerminadas){
-                subastasDisponibles.remove(subasta);
-                eventManager.eliminarSubasta(subasta);
-            }
-
         }
 
     }
@@ -160,7 +155,7 @@ public class Vendedor extends Agent {
         }
 
         private void enviarNotification() {
-            for (Subasta subasta : subastasDisponibles.values()) {
+            for (Subasta subasta : subastasDisponibles.values().stream().filter(s->!s.isFinalizada()).collect(Collectors.toList())) {
                 System.out.println("Informar subasta "+subasta.getTitulo());
                 ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
                 poxadoresDisponibles.forEach(cfp::addReceiver);

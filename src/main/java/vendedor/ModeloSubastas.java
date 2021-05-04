@@ -23,6 +23,7 @@ public class ModeloSubastas extends AbstractTableModel {
         if(col==1) return "Prezo";
         if(col==2) return "Incremento";
         if(col==3) return "Ganador";
+        if(col==4) return "Estado";
         return "";
     }
 
@@ -33,13 +34,14 @@ public class ModeloSubastas extends AbstractTableModel {
             case 1: clase= java.lang.Integer.class; break;
             case 2: clase=java.lang.Integer.class; break;
             case 3: clase=java.lang.String.class; break;
+            case 4: clase=java.lang.String.class; break;
         }
         return clase;
     }
 
     @Override
     public int getColumnCount() {
-        return 4;
+        return 5;
     }
 
     @Override
@@ -56,6 +58,8 @@ public class ModeloSubastas extends AbstractTableModel {
                     resultado="<Sen ganador>";
                 }
                 break;
+            case 4:
+                resultado=getByIndex(row).isFinalizada()?"Finalizada":"En curso";
         }
         return resultado;
 

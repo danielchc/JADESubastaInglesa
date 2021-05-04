@@ -19,7 +19,7 @@ public class GUIVendedor extends JFrame {
     public GUIVendedor(Vendedor vendedor){
         super("Practica 8");
         ModeloSubastas modeloSubastas=new ModeloSubastas();
-
+        setResizable(false);
         eventManager=new EventManager() {
             @Override
             public void actualizarSubasta(Subasta subasta) {
@@ -60,6 +60,9 @@ public class GUIVendedor extends JFrame {
                 Subasta subasta=new Subasta(tfNomeLibro.getText(),prezo,incremento);
                 if(!vendedor.existeSubasta(subasta)){
                     vendedor.engadirSubasta(subasta);
+                    tfNomeLibro.setText("");
+                    tfIncremento.setText("");
+                    tfPrezo.setText("");
                 }
 
             }

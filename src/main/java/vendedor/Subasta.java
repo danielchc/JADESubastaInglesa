@@ -11,12 +11,14 @@ public class Subasta {
     private int prezo;
     private int incremento;
     private ArrayList<AID> poxadores;
+    private boolean finalizada;
 
     public Subasta(String titulo, int prezo, int incremento) {
         this.titulo = titulo;
         this.prezo = prezo;
         this.incremento = incremento;
         this.poxadores=new ArrayList<>();
+        this.finalizada=false;
     }
 
     public String getTitulo() {
@@ -73,5 +75,13 @@ public class Subasta {
 
     public int prezoAnterior(){
         return this.prezo-this.incremento;
+    }
+
+    public boolean isFinalizada() {
+        return finalizada;
+    }
+
+    public void setFinalizada(boolean finalizada) {
+        this.finalizada = finalizada;
     }
 }

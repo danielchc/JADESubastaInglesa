@@ -1,14 +1,22 @@
 package poxador;
 
 public class Obxectivo {
+    public enum EstadoObxectivo {
+        GANADA,
+        EN_CURSO,
+        RETIRADO
+    }
     private String titulo;
     private int prezoMaximo;
+    private int prezoActual;
     private String ganadorActual;
-    private boolean poxaFinalizada;
+    private EstadoObxectivo estadoObxectivo;
 
     public Obxectivo(String titulo, int prezoMaximo) {
         this.titulo = titulo;
         this.prezoMaximo = prezoMaximo;
+        this.prezoActual=0;
+        this.estadoObxectivo=EstadoObxectivo.EN_CURSO;
     }
 
     public String getTitulo() {
@@ -35,11 +43,19 @@ public class Obxectivo {
         this.ganadorActual = ganadorActual;
     }
 
-    public boolean isPoxaFinalizada() {
-        return poxaFinalizada;
+    public EstadoObxectivo getEstadoObxectivo() {
+        return estadoObxectivo;
     }
 
-    public void setPoxaFinalizada(boolean poxaFinalizada) {
-        this.poxaFinalizada = poxaFinalizada;
+    public void setEstadoObxectivo(EstadoObxectivo estadoObxectivo) {
+        this.estadoObxectivo = estadoObxectivo;
+    }
+
+    public int getPrezoActual() {
+        return prezoActual;
+    }
+
+    public void setPrezoActual(int prezoActual) {
+        this.prezoActual = prezoActual;
     }
 }

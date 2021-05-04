@@ -17,6 +17,11 @@ public class Poxador extends Agent {
     private HashMap<String, Obxectivo> obxectivos;
     private PoxadorEventManager poxadorEventManager;
 
+    private void imprimirMensaxe(String msg){
+        System.out.println(String.format("[%s] %s",getName(),msg));
+    }
+
+    
     @Override
     public void setup() {
         poxadorEventManager=new PoxadorEventManager() {
@@ -95,7 +100,6 @@ public class Poxador extends Agent {
         ACLMessage proposta=resposta.createReply();
         proposta.setContent(String.format("%s;%d",titulo,prezo));
 
-
         if(!obxectivos.containsKey(titulo)){
             proposta.setPerformative(ACLMessage.REFUSE);
             myAgent.send(proposta);
@@ -115,22 +119,31 @@ public class Poxador extends Agent {
         //Non ten sentido informar de subastas que non estou involucrado
         if(!obxectivos.containsKey(titulo))
             return;
+        Obxectivo obxectivo=obxectivos.get(titulo);
         int prezo = Integer.parseInt(contido[1]);
         if (resposta.getConversationId().equals("subasta-ronda")) {
             String ganador = contido[2];
-            System.out.println("Ganou a ronda de " + titulo + " o axente " + ganador + " por " + prezo);
-
-            obxectivos.get(titulo).setGanadorActual(ganador);
+            imprimirMensaxe("Ganou a ronda de " + titulo + " o axente " + ganador + " por " + prezo);
+            obxectivo.setGanadorActual(ganador);
 
         } else if (resposta.getConversationId().equals("subasta-baixa")) {
-            System.out.println("Deuse de baixa da subasta " + resposta.getSender().getName() + " de " + titulo + " cuando se poxaba por " + prezo);
+            String retirado= contido[2];
+            imprimirMensaxe("Retirouse " +  retirado + " da poxa " + titulo + " cando se poxaba por " + prezo);
         }
+
+        poxadorEventManager.actualizarObxectivo(obxectivo);
 
     }
 
     private void propostaGanadora(String[] contido, ACLMessage resposta) {
         String titulo = contido[0];
+        if(!obxectivos.containsKey(titulo))
+            return;
+
         int prezo = Integer.parseInt(contido[1]);
-        System.out.println("Ganaches a poxa " + titulo + " por " + prezo);
+        Obxectivo obxectivo=obxectivos.get(titulo);
+        obxectivo.setPrezoActual(prezo);
+        obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.GANADA);
+        imprimirMensaxe("Ganaches a poxa " + titulo + " por " + prezo);
     }
 }

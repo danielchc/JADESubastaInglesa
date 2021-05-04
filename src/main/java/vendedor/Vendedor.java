@@ -26,31 +26,35 @@ public class Vendedor extends Agent {
     private SubastadorEventManager subastadorEventManager;
 
 
+    private void imprimirMensaxe(String msg){
+        System.out.println(String.format("[%s] %s",getName(),msg));
+    }
+    
     @Override
     public void setup() {
         this.subastasDisponibles = new HashMap<>();
         this.poxadoresDisponibles = new ArrayList<>();
         rexistrarServizo();
 
-        GUIVendedor guiVendedor=new GUIVendedor(this);
-        subastadorEventManager =guiVendedor.getEventManager();
+        GUIVendedor guiVendedor = new GUIVendedor(this);
+        subastadorEventManager = guiVendedor.getEventManager();
         guiVendedor.setVisible(true);
 
     }
+
     protected void takeDown() {
         try {
             DFService.deregister(this);
-        }
-        catch (FIPAException fe) {
+        } catch (FIPAException fe) {
             fe.printStackTrace();
         }
-        if(guiVendedor!=null) guiVendedor.dispose();
+        if (guiVendedor != null) guiVendedor.dispose();
     }
 
-    public void engadirSubasta(Subasta subasta){
+    public void engadirSubasta(Subasta subasta) {
         this.subastasDisponibles.put(subasta.getTitulo(), subasta);
         subastadorEventManager.engadirSubasta(subasta);
-        System.out.println("Subasta engadida " +subasta.getTitulo());
+        imprimirMensaxe("Subasta engadida " + subasta.getTitulo() + " por " + subasta.getPrezo());
     }
 
     public boolean existeSubasta(Subasta subasta) {
@@ -100,11 +104,11 @@ public class Vendedor extends Agent {
         }
 
         private void comprobarGanadores() {
-            for(Subasta subasta:subastasDisponibles.values()){
-                if(subasta.getPoxadores().size()<=1 && subasta.getGanadorActual()!=null && !subasta.isFinalizada() ){
-                    ACLMessage finalizacion=new ACLMessage(ACLMessage.REQUEST);
+            for (Subasta subasta : subastasDisponibles.values()) {
+                if (subasta.getPoxadores().size() <= 1 && subasta.getGanadorActual() != null && !subasta.isFinalizada()) {
+                    ACLMessage finalizacion = new ACLMessage(ACLMessage.REQUEST);
                     finalizacion.addReceiver(subasta.getGanadorActual());
-                    finalizacion.setContent(String.format("%s;%d",subasta.getTitulo(),(subasta.prezoAnterior())));
+                    finalizacion.setContent(String.format("%s;%d", subasta.getTitulo(), (subasta.prezoAnterior())));
                     subasta.setFinalizada(true);
                     subasta.setPrezo(subasta.prezoAnterior());
                     subastadorEventManager.actualizarSubasta(subasta);
@@ -146,15 +150,15 @@ public class Vendedor extends Agent {
                         retirarPoxador(resposta, subasta, prezo);
                     respostasPendentes--;
 
-                }else{
+                } else {
                     block();
                 }
             }
         }
 
         private void enviarNotification() {
-            for (Subasta subasta : subastasDisponibles.values().stream().filter(s->!s.isFinalizada()).collect(Collectors.toList())) {
-                System.out.println("Informar subasta "+subasta.getTitulo());
+            for (Subasta subasta : subastasDisponibles.values().stream().filter(s -> !s.isFinalizada()).collect(Collectors.toList())) {
+                imprimirMensaxe("Estase a subastar " + subasta.getTitulo() + " por " + subasta.getPrezo());
                 ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
                 poxadoresDisponibles.forEach(cfp::addReceiver);
                 cfp.setConversationId("subasta-notificacion");
@@ -193,7 +197,7 @@ public class Vendedor extends Agent {
             ACLMessage notificacion = new ACLMessage(ACLMessage.INFORM);
             notificacion.addReceiver(resposta.getSender());
             notificacion.setConversationId("subasta-baixa");
-            notificacion.setContent(String.format("%s;%d", subasta.getTitulo(), prezoRecibido));
+            notificacion.setContent(String.format("%s;%d;%s;", subasta.getTitulo(), prezoRecibido, resposta.getSender().getName()));
             myAgent.send(notificacion);
         }
 

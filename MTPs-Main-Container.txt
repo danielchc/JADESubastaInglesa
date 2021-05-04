@@ -1,1 +1,1 @@
-http://XEON:7778/acc
+http://ALLSERIES.mshome.net:7778/acc

@@ -24,7 +24,7 @@ public class Vendedor extends Agent {
     private final int TEMPO_PUXA = 10000;
     private HashMap<String, Subasta> subastasDisponibles;
     private ArrayList<AID> poxadoresDisponibles;
-    private Agent agenteActual;
+    private GUIVendedor guiVendedor;
     private EventManager eventManager;
 
 
@@ -34,16 +34,30 @@ public class Vendedor extends Agent {
         this.poxadoresDisponibles = new ArrayList<>();
         rexistrarServizo();
 
-        JFrame guiVendedor=new GUIVendedor(this);
+        GUIVendedor guiVendedor=new GUIVendedor(this);
+        eventManager=guiVendedor.getEventManager();
         guiVendedor.setVisible(true);
 
+    }
+    protected void takeDown() {
+        try {
+            DFService.deregister(this);
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+        if(guiVendedor!=null) guiVendedor.dispose();
     }
 
     public void engadirSubasta(Subasta subasta){
         this.subastasDisponibles.put(subasta.getTitulo(), subasta);
+        eventManager.engadirSubasta(subasta);
         System.out.println("Subasta engadida " +subasta.getTitulo());
     }
 
+    public boolean existeSubasta(Subasta subasta) {
+        return subastasDisponibles.containsKey(subasta.getTitulo());
+    }
 
     private void rexistrarServizo() {
         DFAgentDescription dfdAgent = new DFAgentDescription();
@@ -59,15 +73,6 @@ public class Vendedor extends Agent {
         }
         addBehaviour(new Planificador(this, TEMPO_PUXA));
     }
-
-    public void tocar() {
-        System.out.println("TOCOOOOUUUUUU");
-    }
-
-    public boolean existeSubasta(Subasta subasta) {
-        return subastasDisponibles.containsKey(subasta.getTitulo());
-    }
-
 
     private class Planificador extends TickerBehaviour {
         public Planificador(Agent a, long period) {
@@ -115,8 +120,6 @@ public class Vendedor extends Agent {
         }
 
     }
-
-
 
     private class XestionSubastas extends Behaviour {
         private int paso = 0;
@@ -182,6 +185,8 @@ public class Vendedor extends Agent {
                 subasta.setGanadorActual(resposta.getSender());
                 subasta.engadirIncremento();
             }
+
+            eventManager.actualizarSubasta(subasta);
 
             ACLMessage notificacion = new ACLMessage(ACLMessage.INFORM);
             notificacion.addReceiver(resposta.getSender());

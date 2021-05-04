@@ -1,3 +1,5 @@
+package poxador;
+
 import jade.core.Agent;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -12,7 +14,14 @@ public class Poxador extends Agent {
 
 
     }
-
+    protected void takeDown() {
+        try {
+            DFService.deregister(this);
+        }
+        catch (FIPAException fe) {
+            fe.printStackTrace();
+        }
+    }
 
     private void rexistrarServizo() {
         DFAgentDescription dfdAgent = new DFAgentDescription();

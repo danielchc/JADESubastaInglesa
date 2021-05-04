@@ -1,7 +1,6 @@
 package vendedor;
 
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
 import java.awt.event.ActionEvent;
 
 public class GUIVendedor extends JFrame {
@@ -15,10 +14,23 @@ public class GUIVendedor extends JFrame {
     private javax.swing.JTextField tfNomeLibro;
     private javax.swing.JTextField tfIncremento;
     private javax.swing.JTextField tfPrezo;
+    private EventManager eventManager;
 
     public GUIVendedor(Vendedor vendedor){
         super("Practica 8");
         ModeloSubastas modeloSubastas=new ModeloSubastas();
+
+        eventManager=new EventManager() {
+            @Override
+            public void actualizarSubasta(Subasta subasta) {
+                modeloSubastas.actualizarSubasta(subasta);
+            }
+            @Override
+            public void engadirSubasta(Subasta subasta) {
+                modeloSubastas.engadirSubasta(subasta);
+            }
+        };
+
         jScrollPane2 = new javax.swing.JScrollPane();
         btnEngadir = new javax.swing.JButton();
         tfNomeLibro = new javax.swing.JTextField();
@@ -36,13 +48,12 @@ public class GUIVendedor extends JFrame {
         btnEngadir.setText("Engadir");
         btnEngadir.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                if((tfNomeLibro.getText().isBlank())||(tfIncremento.getText().isBlank())||(tfPrezo.getText().isBlank()))
+                if((tfNomeLibro.getText().isEmpty())||(tfIncremento.getText().isEmpty())||(tfPrezo.getText().isEmpty()))
                     return;
                 int prezo=Integer.parseInt(tfPrezo.getText());
                 int incremento=Integer.parseInt(tfIncremento.getText());
                 Subasta subasta=new Subasta(tfNomeLibro.getText(),prezo,incremento);
                 if(!vendedor.existeSubasta(subasta)){
-                    modeloSubastas.engadirSubasta(subasta);
                     vendedor.engadirSubasta(subasta);
                 }
 
@@ -109,6 +120,8 @@ public class GUIVendedor extends JFrame {
         );
 
         pack();
-
+    }
+    public EventManager getEventManager(){
+        return eventManager;
     }
 }

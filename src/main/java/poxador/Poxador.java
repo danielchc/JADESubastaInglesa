@@ -15,35 +15,23 @@ import java.util.HashMap;
 public class Poxador extends Agent {
 
     private HashMap<String, Obxectivo> obxectivos;
-    private PoxadorEventManager poxadorEventManager;
+    private GUIPoxador guiPoxador;
 
-    private void imprimirMensaxe(String msg){
-        System.out.println(String.format("[%s] %s",getName(),msg));
+    private void imprimirMensaxe(String msg) {
+        System.out.println(String.format("[%s] %s", getName(), msg));
     }
 
-    
+
     @Override
     public void setup() {
-        poxadorEventManager=new PoxadorEventManager() {
-            @Override
-            public void actualizarObxectivo(Obxectivo obxectivo) {
-
-            }
-
-            @Override
-            public void engadirObxectivo(Obxectivo obxectivo) {
-
-            }
-        };
-        obxectivos=new HashMap<>();
-        obxectivos.put("papo",new Obxectivo("papo",10));
+        guiPoxador = new GUIPoxador(this);
+        obxectivos = new HashMap<>();
         rexistrarServizo();
+        guiPoxador.setVisible(true);
+
     }
 
-    public void engadirObxectivo(Obxectivo obxectivo){
-        obxectivos.put(obxectivo.getTitulo(),obxectivo);
-        poxadorEventManager.engadirObxectivo(obxectivo);
-    }
+
 
     protected void takeDown() {
         try {
@@ -51,6 +39,7 @@ public class Poxador extends Agent {
         } catch (FIPAException fe) {
             fe.printStackTrace();
         }
+        if(guiPoxador!=null)guiPoxador.dispose();
     }
 
     private void rexistrarServizo() {
@@ -68,6 +57,20 @@ public class Poxador extends Agent {
         addBehaviour(new ConsultarSubastas());
     }
 
+    public void engadirObxectivo(Obxectivo obxectivo) {
+        obxectivos.put(obxectivo.getTitulo(), obxectivo);
+        guiPoxador.engadirObxectivo(obxectivo);
+    }
+
+    public boolean existeObxectivo(String text) {
+        return obxectivos.containsKey(text);
+    }
+
+    public void eliminarObxectivo(String obxectivo) {
+        obxectivos.remove(obxectivo);
+        guiPoxador.eliminarObxectivo(obxectivo);
+    }
+
     private class ConsultarSubastas extends CyclicBehaviour {
 
         @Override
@@ -82,12 +85,12 @@ public class Poxador extends Agent {
             if (resposta != null) {
                 String contido[] = resposta.getContent().split(";");
                 if (resposta.getPerformative() == ACLMessage.CFP)
-                    propostaPoxa(contido,resposta, myAgent);
+                    propostaPoxa(contido, resposta, myAgent);
                 else if (resposta.getPerformative() == ACLMessage.REQUEST)
-                    propostaGanadora(contido,resposta);
+                    propostaGanadora(contido, resposta);
                 else if (resposta.getPerformative() == ACLMessage.INFORM)
-                    rondaFinalizada(contido,resposta);
-            }else{
+                    rondaFinalizada(contido, resposta);
+            } else {
                 block();
             }
 
@@ -97,17 +100,17 @@ public class Poxador extends Agent {
     private void propostaPoxa(String[] contido, ACLMessage resposta, Agent myAgent) {
         String titulo = contido[0];
         int prezo = Integer.parseInt(contido[1]);
-        ACLMessage proposta=resposta.createReply();
-        proposta.setContent(String.format("%s;%d",titulo,prezo));
+        ACLMessage proposta = resposta.createReply();
+        proposta.setContent(String.format("%s;%d", titulo, prezo));
 
-        if(!obxectivos.containsKey(titulo)){
+        if (!obxectivos.containsKey(titulo)) {
             proposta.setPerformative(ACLMessage.REFUSE);
             myAgent.send(proposta);
             return;
         }
-        if(obxectivos.get(titulo).getPrezoMaximo()>=prezo){
+        if (obxectivos.get(titulo).getPrezoMaximo() >= prezo) {
             proposta.setPerformative(ACLMessage.PROPOSE);
-        }else{
+        } else {
             proposta.setPerformative(ACLMessage.REFUSE);
             proposta.setConversationId("subasta-baixa");
         }
@@ -116,34 +119,35 @@ public class Poxador extends Agent {
 
     private void rondaFinalizada(String[] contido, ACLMessage resposta) {
         String titulo = contido[0];
-        //Non ten sentido informar de subastas que non estou involucrado
-        if(!obxectivos.containsKey(titulo))
-            return;
-        Obxectivo obxectivo=obxectivos.get(titulo);
+        if (!obxectivos.containsKey(titulo)) return;
+
+
+        Obxectivo obxectivo = obxectivos.get(titulo);
         int prezo = Integer.parseInt(contido[1]);
         if (resposta.getConversationId().equals("subasta-ronda")) {
             String ganador = contido[2];
             imprimirMensaxe("Ganou a ronda de " + titulo + " o axente " + ganador + " por " + prezo);
             obxectivo.setGanadorActual(ganador);
-
+            obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.EN_CURSO);
         } else if (resposta.getConversationId().equals("subasta-baixa")) {
-            String retirado= contido[2];
-            imprimirMensaxe("Retirouse " +  retirado + " da poxa " + titulo + " cando se poxaba por " + prezo);
+            imprimirMensaxe("Retiramonos da poxa " + titulo + " cando se poxaba por " + prezo);
+            obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.RETIRADO);
         }
 
-        poxadorEventManager.actualizarObxectivo(obxectivo);
+        obxectivo.setPrezoActual(prezo);
+        guiPoxador.actualizarObxectivo(obxectivo);
 
     }
 
     private void propostaGanadora(String[] contido, ACLMessage resposta) {
         String titulo = contido[0];
-        if(!obxectivos.containsKey(titulo))
-            return;
+        if (!obxectivos.containsKey(titulo)) return;
 
         int prezo = Integer.parseInt(contido[1]);
-        Obxectivo obxectivo=obxectivos.get(titulo);
+        Obxectivo obxectivo = obxectivos.get(titulo);
         obxectivo.setPrezoActual(prezo);
         obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.GANADA);
+        guiPoxador.actualizarObxectivo(obxectivo);
         imprimirMensaxe("Ganaches a poxa " + titulo + " por " + prezo);
     }
 }

@@ -23,7 +23,6 @@ public class Vendedor extends Agent {
     private HashMap<String, Subasta> subastasDisponibles;
     private ArrayList<AID> poxadoresDisponibles;
     private GUIVendedor guiVendedor;
-    private SubastadorEventManager subastadorEventManager;
 
 
     private void imprimirMensaxe(String msg){
@@ -36,8 +35,7 @@ public class Vendedor extends Agent {
         this.poxadoresDisponibles = new ArrayList<>();
         rexistrarServizo();
 
-        GUIVendedor guiVendedor = new GUIVendedor(this);
-        subastadorEventManager = guiVendedor.getEventManager();
+        guiVendedor = new GUIVendedor(this);
         guiVendedor.setVisible(true);
 
     }
@@ -53,7 +51,7 @@ public class Vendedor extends Agent {
 
     public void engadirSubasta(Subasta subasta) {
         this.subastasDisponibles.put(subasta.getTitulo(), subasta);
-        subastadorEventManager.engadirSubasta(subasta);
+        guiVendedor.engadirSubasta(subasta);
         imprimirMensaxe("Subasta engadida " + subasta.getTitulo() + " por " + subasta.getPrezo());
     }
 
@@ -92,7 +90,7 @@ public class Vendedor extends Agent {
             poxadoresDisponibles = new ArrayList<>();
             try {
                 DFAgentDescription[] result = DFService.search(myAgent, dfAgentDescription);
-                poxadoresDisponibles.addAll(Arrays.stream(result).map(k -> k.getName()).collect(Collectors.toList()));
+                poxadoresDisponibles.addAll(Arrays.stream(result).map(DFAgentDescription::getName).collect(Collectors.toList()));
 
                 if (!subastasDisponibles.isEmpty())
                     addBehaviour(new XestionSubastas());
@@ -111,7 +109,7 @@ public class Vendedor extends Agent {
                     finalizacion.setContent(String.format("%s;%d", subasta.getTitulo(), (subasta.prezoAnterior())));
                     subasta.setFinalizada(true);
                     subasta.setPrezo(subasta.prezoAnterior());
-                    subastadorEventManager.actualizarSubasta(subasta);
+                    guiVendedor.actualizarSubasta(subasta);
                     myAgent.send(finalizacion);
                 }
             }
@@ -181,7 +179,7 @@ public class Vendedor extends Agent {
                 subasta.engadirIncremento();
             }
 
-            subastadorEventManager.actualizarSubasta(subasta);
+            guiVendedor.actualizarSubasta(subasta);
 
             ACLMessage notificacion = new ACLMessage(ACLMessage.INFORM);
             notificacion.addReceiver(resposta.getSender());
@@ -197,7 +195,7 @@ public class Vendedor extends Agent {
             ACLMessage notificacion = new ACLMessage(ACLMessage.INFORM);
             notificacion.addReceiver(resposta.getSender());
             notificacion.setConversationId("subasta-baixa");
-            notificacion.setContent(String.format("%s;%d;%s;", subasta.getTitulo(), prezoRecibido, resposta.getSender().getName()));
+            notificacion.setContent(String.format("%s;%d", subasta.getTitulo(), prezoRecibido));
             myAgent.send(notificacion);
         }
 

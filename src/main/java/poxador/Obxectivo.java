@@ -2,6 +2,7 @@ package poxador;
 
 public class Obxectivo {
     public enum EstadoObxectivo {
+        ESPERANDO,
         GANADA,
         EN_CURSO,
         RETIRADO
@@ -16,7 +17,7 @@ public class Obxectivo {
         this.titulo = titulo;
         this.prezoMaximo = prezoMaximo;
         this.prezoActual=0;
-        this.estadoObxectivo=EstadoObxectivo.EN_CURSO;
+        this.estadoObxectivo=EstadoObxectivo.ESPERANDO;
     }
 
     public String getTitulo() {

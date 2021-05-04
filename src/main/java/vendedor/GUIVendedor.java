@@ -4,42 +4,33 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 
 public class GUIVendedor extends JFrame {
-    private javax.swing.JButton btnEngadir;
-    private javax.swing.JLabel lblNome;
-    private javax.swing.JLabel lblPrezo;
-    private javax.swing.JLabel lblIncremento;
-    private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTable jTable2;
-    private javax.swing.JTextField tfNomeLibro;
-    private javax.swing.JTextField tfIncremento;
-    private javax.swing.JTextField tfPrezo;
-    private SubastadorEventManager subastadorEventManager;
+    private final javax.swing.JButton btnEngadir;
+    private final javax.swing.JLabel lblNome;
+    private final javax.swing.JLabel lblPrezo;
+    private final javax.swing.JLabel lblIncremento;
+    private final javax.swing.JScrollPane jScrollPane2;
+    private final javax.swing.JScrollPane jScrollPane3;
+    private final javax.swing.JTable jTable2;
+    private final javax.swing.JTextField tfNomeLibro;
+    private final javax.swing.JFormattedTextField tfIncremento;
+    private final javax.swing.JFormattedTextField tfPrezo;
+    private final ModeloSubastas modeloSubastas;
+    private final JLabel jLabel1;
 
-    public GUIVendedor(Vendedor vendedor){
-        super("Practica 8 - Subastador");
-        ModeloSubastas modeloSubastas=new ModeloSubastas();
+    public GUIVendedor(Vendedor vendedor) {
+        super("Practica 6 - Subastador");
+        modeloSubastas = new ModeloSubastas();
         setResizable(false);
-        subastadorEventManager =new SubastadorEventManager() {
-            @Override
-            public void actualizarSubasta(Subasta subasta) {
-                modeloSubastas.actualizarSubasta(subasta);
-            }
-            @Override
-            public void engadirSubasta(Subasta subasta) {
-                modeloSubastas.engadirSubasta(subasta);
-            }
-        };
-
         jScrollPane2 = new javax.swing.JScrollPane();
         btnEngadir = new javax.swing.JButton();
         tfNomeLibro = new javax.swing.JTextField();
-        tfIncremento = new javax.swing.JTextField();
-        tfPrezo = new javax.swing.JTextField();
+        tfIncremento = new javax.swing.JFormattedTextField();
+        tfPrezo = new javax.swing.JFormattedTextField();
         lblNome = new javax.swing.JLabel();
         lblPrezo = new javax.swing.JLabel();
         lblIncremento = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
+        jLabel1 = new JLabel();
         jTable2 = new javax.swing.JTable();
 
 
@@ -48,12 +39,12 @@ public class GUIVendedor extends JFrame {
         btnEngadir.setText("Engadir");
         btnEngadir.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                if((tfNomeLibro.getText().isEmpty())||(tfIncremento.getText().isEmpty())||(tfPrezo.getText().isEmpty()))
+                if ((tfNomeLibro.getText().isEmpty()) || (tfIncremento.getText().isEmpty()) || (tfPrezo.getText().isEmpty()))
                     return;
-                int prezo=Integer.parseInt(tfPrezo.getText());
-                int incremento=Integer.parseInt(tfIncremento.getText());
-                Subasta subasta=new Subasta(tfNomeLibro.getText(),prezo,incremento);
-                if(!vendedor.existeSubasta(subasta)){
+                int prezo = Integer.parseInt(tfPrezo.getText());
+                int incremento = Integer.parseInt(tfIncremento.getText());
+                Subasta subasta = new Subasta(tfNomeLibro.getText(), prezo, incremento);
+                if (!vendedor.existeSubasta(subasta)) {
                     vendedor.engadirSubasta(subasta);
                     tfNomeLibro.setText("");
                     tfIncremento.setText("");
@@ -69,6 +60,10 @@ public class GUIVendedor extends JFrame {
         lblNome.setText("Nome");
         lblPrezo.setText("Prezo");
         lblIncremento.setText("Incremento");
+        jLabel1.setText("Subastas");
+
+        tfPrezo.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
+        tfIncremento.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter()));
 
 
         jTable2.setModel(modeloSubastas);
@@ -124,7 +119,13 @@ public class GUIVendedor extends JFrame {
 
         pack();
     }
-    public SubastadorEventManager getEventManager(){
-        return subastadorEventManager;
+
+
+    public void actualizarSubasta(Subasta subasta) {
+        modeloSubastas.actualizarSubasta(subasta);
+    }
+
+    public void engadirSubasta(Subasta subasta) {
+        modeloSubastas.engadirSubasta(subasta);
     }
 }

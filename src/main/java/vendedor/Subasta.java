@@ -10,14 +10,14 @@ public class Subasta {
     private AID ganadorActual;
     private int prezo;
     private int incremento;
-    private ArrayList<AID> poxadores;
+    private ArrayList<AID> interesados;
     private boolean finalizada;
 
     public Subasta(String titulo, int prezo, int incremento) {
         this.titulo = titulo;
         this.prezo = prezo;
         this.incremento = incremento;
-        this.poxadores=new ArrayList<>();
+        this.interesados =new ArrayList<>();
         this.finalizada=false;
     }
 
@@ -53,25 +53,31 @@ public class Subasta {
         this.incremento = incremento;
     }
 
-    public ArrayList<AID> getPoxadores() {
-        return poxadores;
+    public ArrayList<AID> getInteresados() {
+        return interesados;
     }
 
-    public void setPoxadores(ArrayList<AID> poxadores) {
-        this.poxadores = poxadores;
+    public void setInteresados(ArrayList<AID> interesados) {
+        this.interesados = interesados;
     }
 
-    public void engadirPoxador(AID poxador) {
-        this.poxadores.add(poxador);
+    public void engadirInteresado(AID poxador) {
+        this.interesados.add(poxador);
+    }
+
+    public void eliminarInteresado(AID poxador){
+        this.interesados.remove(poxador);
+    }
+
+    public void eliminarInteresados(){
+        this.interesados.clear();
     }
 
     public void engadirIncremento(){
         this.prezo+=incremento;
     }
 
-    public void eliminarPoxador(AID poxador){
-        this.poxadores.remove(poxador);
-    }
+
 
     public int prezoAnterior(){
         return this.prezo-this.incremento;

@@ -1,11 +1,7 @@
 package vendedor;
 
-import jade.core.AID;
-
 import javax.swing.table.AbstractTableModel;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Optional;
 
 public class ModeloSubastas extends AbstractTableModel {
     private LinkedHashMap<String, Subasta> subastas;
@@ -54,7 +50,7 @@ public class ModeloSubastas extends AbstractTableModel {
                 }
                 break;
             case 4:
-                resultado = getByIndex(row).getPoxadores().size();
+                resultado = getByIndex(row).getInteresados().size();
                 break;
             case 5:
                 resultado = getByIndex(row).isFinalizada() ? "Finalizada" : "En curso";

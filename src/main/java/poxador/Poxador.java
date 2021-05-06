@@ -8,7 +8,6 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import vendedor.GUIVendedor;
 
 import java.util.HashMap;
 
@@ -79,7 +78,7 @@ public class Poxador extends Agent {
             MessageTemplate mt = MessageTemplate.or(
                     MessageTemplate.MatchPerformative(ACLMessage.CFP),
                     MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-                            MessageTemplate.MatchPerformative(ACLMessage.REQUEST))
+                    MessageTemplate.MatchPerformative(ACLMessage.REQUEST))
             );
             ACLMessage resposta = myAgent.receive(mt);
 
@@ -105,12 +104,9 @@ public class Poxador extends Agent {
         proposta.setContent(String.format("%s;%d", titulo, prezo));
 
         if (!obxectivos.containsKey(titulo)) {
-            proposta.setPerformative(ACLMessage.REFUSE);
-            //REVISAR ESTO
-            proposta.setConversationId("subasta-baixa");
-            myAgent.send(proposta);
             return;
         }
+
         if (obxectivos.get(titulo).getPrezoMaximo() >= prezo) {
             proposta.setPerformative(ACLMessage.PROPOSE);
         } else {

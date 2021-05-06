@@ -115,6 +115,7 @@ public class Poxador extends Agent {
 		if (!obxectivos.containsKey(titulo)) return;
 
 		if (obxectivos.get(titulo).getPrezoMaximo() >= prezo) {
+			imprimirMensaxe(String.format("O vendedor propuxo %s por %d, aceptamos ",titulo,prezo));
 			//Se aceptamos a proposta, enviamos o propose
 			proposta.setPerformative(ACLMessage.PROPOSE);
 			myAgent.send(proposta);

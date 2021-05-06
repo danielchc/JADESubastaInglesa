@@ -134,7 +134,7 @@ public class Vendedor extends Agent {
 				ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 				poxadoresDisponibles.forEach(cfp::addReceiver);
 				cfp.setContent(String.format("%s;%d", subasta.getTitulo(), subasta.getPrezo()));
-				cfp.setReplyWith("cfp" + System.currentTimeMillis());
+//				cfp.setReplyWith("cfp" + System.currentTimeMillis());
 				myAgent.send(cfp);
 			}
 		}

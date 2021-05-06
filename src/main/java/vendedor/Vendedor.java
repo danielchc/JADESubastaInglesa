@@ -150,8 +150,8 @@ public class Vendedor extends Agent {
 
 				if (resposta.getPerformative() == ACLMessage.PROPOSE)
 					propostaPoxador(resposta, subasta, prezo);
-				else if (resposta.getPerformative() == ACLMessage.REFUSE)
-					retirarPoxador(resposta, subasta, prezo);
+
+
 			}else {
 				block();
 			}
@@ -179,20 +179,6 @@ public class Vendedor extends Agent {
 
 			guiVendedor.actualizarSubasta(subasta);
 
-		}
-
-		private void retirarPoxador(ACLMessage resposta, Subasta subasta, Integer prezoRecibido) {
-
-
-
-			if(!resposta.getConversationId().equals("subasta-baixa"))
-				return;
-
-			ACLMessage notificacion = new ACLMessage(ACLMessage.INFORM);
-			notificacion.addReceiver(resposta.getSender());
-			notificacion.setConversationId("subasta-baixa");
-			notificacion.setContent(String.format("%s;%d", subasta.getTitulo(), prezoRecibido));
-			myAgent.send(notificacion);
 		}
 
 	}

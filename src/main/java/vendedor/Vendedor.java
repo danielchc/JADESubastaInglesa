@@ -27,12 +27,13 @@ public class Vendedor extends Agent {
 
 	private void imprimirMensaxe(String msg){
 		System.out.println(String.format("[%s] %s",getName(),msg));
+		guiVendedor.imprimirMensaxe(msg);
 	}
 
 	public void engadirSubasta(Subasta subasta) {
 		this.subastasDisponibles.put(subasta.getTitulo(), subasta);
 		guiVendedor.engadirSubasta(subasta);
-		imprimirMensaxe("Subasta engadida " + subasta.getTitulo() + " por " + subasta.getPrezo());
+		imprimirMensaxe(String.format("Subasta engadida: %s por %d (+%d)",subasta.getTitulo(),subasta.getPrezo(),subasta.getIncremento()));
 	}
 
 	public boolean existeSubasta(Subasta subasta) {
@@ -53,10 +54,10 @@ public class Vendedor extends Agent {
 	@Override
 	protected void takeDown() {
 		try {
-			DFService.deregister(this);
-		} catch (FIPAException fe) {
-			fe.printStackTrace();
-		}
+			if(this!=null)
+				DFService.deregister(this);
+		} catch (FIPAException fe) {}
+
 		if (guiVendedor != null) guiVendedor.dispose();
 	}
 
@@ -104,23 +105,20 @@ public class Vendedor extends Agent {
 			for (Subasta subasta : subastasDisponibles.values()) {
 				if (subasta.getInteresados().size() <= 1 && subasta.getGanadorActual() != null && subasta.getEstado()!= Subasta.EstadoSubasta.FINALIZADA) {
 
-
+					//Notificamos o ganador
 					ACLMessage notificar = new ACLMessage(ACLMessage.REQUEST);
 					notificar.addReceiver(subasta.getGanadorActual());
 					notificar.setContent(String.format("%s;%d;%s", subasta.getTitulo(), subasta.prezoAnterior(),subasta.getGanadorActual().getName()));
 					myAgent.send(notificar);
 
-
-
-					/*Informar o resto que non ganou*/
-
-					
+					//Notificamos a toda a sala
 					notificar = new ACLMessage(ACLMessage.INFORM);
-					System.out.println(poxadoresDisponibles.stream().filter(k->!k.equals(subasta.getGanadorActual())).map(AID::getName).collect(Collectors.joining(", ")));
 					poxadoresDisponibles.stream().filter(k->!k.equals(subasta.getGanadorActual())).forEach(notificar::addReceiver);
 					notificar.setContent(String.format("%s;%d;%s", subasta.getTitulo(), subasta.prezoAnterior(),subasta.getGanadorActual().getName()));
 					myAgent.send(notificar);
 
+					//Actualizamos a subasta e a interface
+					imprimirMensaxe(String.format("O poxador %s ganou a subasta de %s por %d",subasta.getGanadorActual().getName(),subasta.getTitulo(), subasta.prezoAnterior()));
 					subasta.setEstado(Subasta.EstadoSubasta.FINALIZADA);
 					subasta.setPrezo(subasta.prezoAnterior());
 					guiVendedor.actualizarSubasta(subasta);
@@ -132,10 +130,9 @@ public class Vendedor extends Agent {
 			for (Subasta subasta : subastasDisponibles.values().stream().filter(s -> s.getEstado()!= Subasta.EstadoSubasta.FINALIZADA).collect(Collectors.toList())) {
 				subasta.eliminarInteresados();
 				subasta.setEstado(Subasta.EstadoSubasta.ANUNCIADA);
-				imprimirMensaxe("Estase a subastar " + subasta.getTitulo() + " por " + subasta.getPrezo());
+				imprimirMensaxe(String.format("Anunciouse %s por %d", subasta.getTitulo(),subasta.getPrezo()));
 				ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 				poxadoresDisponibles.forEach(cfp::addReceiver);
-				cfp.setConversationId("subasta-notificacion");
 				cfp.setContent(String.format("%s;%d", subasta.getTitulo(), subasta.getPrezo()));
 				cfp.setReplyWith("cfp" + System.currentTimeMillis());
 				myAgent.send(cfp);
@@ -148,18 +145,18 @@ public class Vendedor extends Agent {
 
 		@Override
 		public void action() {
-			mt = MessageTemplate.or(MessageTemplate.MatchConversationId("subasta-notificacion"), MessageTemplate.MatchConversationId("subasta-baixa"));
+			mt= MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
 
 			ACLMessage resposta = myAgent.receive(mt);
 			if (resposta != null) {
 				String[] partes = resposta.getContent().split(";");
 				String titulo = partes[0];
 				Integer prezo = Integer.parseInt(partes[1]);
-				if (!subastasDisponibles.containsKey(titulo)) {
-					return;
-				}
-				Subasta subasta = subastasDisponibles.get(titulo);
 
+				//Se non existe a subasta ignorase a peticion
+				if (!subastasDisponibles.containsKey(titulo))return;
+
+				Subasta subasta = subastasDisponibles.get(titulo);
 				if (resposta.getPerformative() == ACLMessage.PROPOSE)
 					propostaPoxador(resposta, subasta, prezo);
 
@@ -171,18 +168,19 @@ public class Vendedor extends Agent {
 		}
 
 		private void propostaPoxador(ACLMessage resposta, Subasta subasta, Integer prezoRecibido) {
+			//Engadimos interesado se non existe
+			subasta.engadirInteresado(resposta.getSender());
 
-			if (!subasta.getInteresados().contains(resposta.getSender()))
-				subasta.engadirInteresado(resposta.getSender());
-
+			//En principio rexeitamos todas as propostas
 			ACLMessage notificacion = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
 
+			//Comprobamos se a proposta é ganadora, neste caso aceptamola(o prezo aumentase polo cal asignaraselle o primeiro)
 			if (prezoRecibido.equals(subasta.getPrezo())) {
 				subasta.setGanadorActual(resposta.getSender());
 				subasta.engadirIncremento();
+				imprimirMensaxe(String.format("O poxador %s aceptou a proposta %s por %d",resposta.getSender().getName(),subasta.getTitulo(),prezoRecibido));
 				notificacion.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 			}
-
 
 			notificacion.addReceiver(resposta.getSender());
 			notificacion.setConversationId("subasta-ronda");
@@ -190,7 +188,6 @@ public class Vendedor extends Agent {
 			myAgent.send(notificacion);
 
 			guiVendedor.actualizarSubasta(subasta);
-
 		}
 
 	}

@@ -18,20 +18,23 @@ public class Poxador extends Agent {
 
 	private void imprimirMensaxe(String msg) {
 		System.out.println(String.format("[%s] %s", getName(), msg));
+		guiPoxador.imprimirMensaxe(msg);
 	}
 
 	public void engadirObxectivo(Obxectivo obxectivo) {
 		obxectivos.put(obxectivo.getTitulo(), obxectivo);
+		imprimirMensaxe(String.format("Engadido obxectivo: %s por un maximo de %d",obxectivo.getTitulo(),obxectivo.getPrezoMaximo()));
 		guiPoxador.engadirObxectivo(obxectivo);
-	}
-
-	public boolean existeObxectivo(String text) {
-		return obxectivos.containsKey(text);
 	}
 
 	public void eliminarObxectivo(String obxectivo) {
 		obxectivos.remove(obxectivo);
+		imprimirMensaxe(String.format("Eliminado obxectivo: %s",obxectivo));
 		guiPoxador.eliminarObxectivo(obxectivo);
+	}
+
+	public boolean existeObxectivo(String text) {
+		return obxectivos.containsKey(text);
 	}
 
 
@@ -50,7 +53,6 @@ public class Poxador extends Agent {
 		try {
 			DFService.deregister(this);
 		} catch (FIPAException fe) {
-			fe.printStackTrace();
 		}
 	}
 
@@ -113,11 +115,14 @@ public class Poxador extends Agent {
 		if (!obxectivos.containsKey(titulo)) return;
 
 		if (obxectivos.get(titulo).getPrezoMaximo() >= prezo) {
+			//Se aceptamos a proposta, enviamos o propose
 			proposta.setPerformative(ACLMessage.PROPOSE);
 			myAgent.send(proposta);
 		} else {
+			//Se a subasta é demasiado elevada establezco o estado a retirado
 			obxectivos.get(titulo).setEstadoObxectivo(Obxectivo.EstadoObxectivo.RETIRADO);
 			guiPoxador.actualizarObxectivo(obxectivos.get(titulo));
+			imprimirMensaxe(String.format("Retirouse da poxa %s porque o precio actual e %d ",titulo,prezo));
 		}
 
 	}

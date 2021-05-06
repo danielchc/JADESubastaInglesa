@@ -27,7 +27,7 @@ public class GUIVendedor extends JFrame {
     private Vendedor vendedor;
 
     public GUIVendedor(Vendedor vendedor) {
-        super("Practica 6 - Subastador");
+        super("Practica 6 - "+vendedor.getName());
         setResizable(false);
         setSize(500,700);
         modeloSubastas = new ModeloSubastas();
@@ -79,7 +79,7 @@ public class GUIVendedor extends JFrame {
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel3.setText("Subastas");
 
-        jLabel4.setText("Agente: "+vendedor.getName());
+        jLabel4.setText("Axente: "+vendedor.getName());
 
         jLabel5.setText("Prezo");
 

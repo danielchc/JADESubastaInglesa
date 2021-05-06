@@ -86,7 +86,7 @@ public class GUIPoxador extends JFrame {
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel3.setText("Obxectivos");
 
-        jLabel4.setText("Agente: "+poxador.getName());
+        jLabel4.setText("Axente: "+poxador.getName());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);

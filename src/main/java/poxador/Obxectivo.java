@@ -5,7 +5,7 @@ public class Obxectivo {
         ESPERANDO,
         GANADA,
         PERDIDA,
-        EN_CABEZA,
+        GANANDO,
         PERDENDO,
         RETIRADO;
 	}

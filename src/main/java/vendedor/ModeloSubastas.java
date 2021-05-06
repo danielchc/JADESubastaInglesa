@@ -53,7 +53,7 @@ public class ModeloSubastas extends AbstractTableModel {
                 resultado = getByIndex(row).getInteresados().size();
                 break;
             case 5:
-                resultado = getByIndex(row).isFinalizada() ? "Finalizada" : "En curso";
+                resultado = getByIndex(row).getEstado().toString();
                 break;
         }
         return resultado;

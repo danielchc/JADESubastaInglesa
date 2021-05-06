@@ -5,89 +5,94 @@ import jade.core.AID;
 import java.util.ArrayList;
 
 public class Subasta {
+	public enum EstadoSubasta {
+		ESPERANDO,
+		ANUNCIADA,
+		FINALIZADA
+	}
 
-    private String titulo;
-    private AID ganadorActual;
-    private int prezo;
-    private int incremento;
-    private ArrayList<AID> interesados;
-    private boolean finalizada;
+	private String titulo;
+	private AID ganadorActual;
+	private int prezo;
+	private int incremento;
+	private ArrayList<AID> interesados;
+	private EstadoSubasta estado;
 
-    public Subasta(String titulo, int prezo, int incremento) {
-        this.titulo = titulo;
-        this.prezo = prezo;
-        this.incremento = incremento;
-        this.interesados =new ArrayList<>();
-        this.finalizada=false;
-    }
+	public Subasta(String titulo, int prezo, int incremento) {
+		this.titulo = titulo;
+		this.prezo = prezo;
+		this.incremento = incremento;
+		this.interesados = new ArrayList<>();
+		this.estado = EstadoSubasta.ESPERANDO;
+	}
 
-    public String getTitulo() {
-        return titulo;
-    }
+	public String getTitulo() {
+		return titulo;
+	}
 
-    public void setTitulo(String titulo) {
-        this.titulo = titulo;
-    }
+	public void setTitulo(String titulo) {
+		this.titulo = titulo;
+	}
 
-    public AID getGanadorActual() {
-        return ganadorActual;
-    }
+	public AID getGanadorActual() {
+		return ganadorActual;
+	}
 
-    public void setGanadorActual(AID ganadorActual) {
-        this.ganadorActual = ganadorActual;
-    }
+	public void setGanadorActual(AID ganadorActual) {
+		this.ganadorActual = ganadorActual;
+	}
 
-    public int getPrezo() {
-        return prezo;
-    }
+	public int getPrezo() {
+		return prezo;
+	}
 
-    public void setPrezo(int prezo) {
-        this.prezo = prezo;
-    }
+	public void setPrezo(int prezo) {
+		this.prezo = prezo;
+	}
 
-    public int getIncremento() {
-        return incremento;
-    }
+	public int getIncremento() {
+		return incremento;
+	}
 
-    public void setIncremento(int incremento) {
-        this.incremento = incremento;
-    }
+	public void setIncremento(int incremento) {
+		this.incremento = incremento;
+	}
 
-    public ArrayList<AID> getInteresados() {
-        return interesados;
-    }
+	public ArrayList<AID> getInteresados() {
+		return interesados;
+	}
 
-    public void setInteresados(ArrayList<AID> interesados) {
-        this.interesados = interesados;
-    }
+	public void setInteresados(ArrayList<AID> interesados) {
+		this.interesados = interesados;
+	}
 
-    public void engadirInteresado(AID poxador) {
-        this.interesados.add(poxador);
-    }
+	public void engadirInteresado(AID poxador) {
+		this.interesados.add(poxador);
+	}
 
-    public void eliminarInteresado(AID poxador){
-        this.interesados.remove(poxador);
-    }
+	public void eliminarInteresado(AID poxador) {
+		this.interesados.remove(poxador);
+	}
 
-    public void eliminarInteresados(){
-        this.interesados.clear();
-    }
+	public void eliminarInteresados() {
+		this.interesados.clear();
+	}
 
-    public void engadirIncremento(){
-        this.prezo+=incremento;
-    }
+	public void engadirIncremento() {
+		this.prezo += incremento;
+	}
 
 
+	public int prezoAnterior() {
+		return this.prezo - this.incremento;
+	}
 
-    public int prezoAnterior(){
-        return this.prezo-this.incremento;
-    }
 
-    public boolean isFinalizada() {
-        return finalizada;
-    }
+	public EstadoSubasta getEstado() {
+		return estado;
+	}
 
-    public void setFinalizada(boolean finalizada) {
-        this.finalizada = finalizada;
-    }
+	public void setEstado(EstadoSubasta estado) {
+		this.estado = estado;
+	}
 }

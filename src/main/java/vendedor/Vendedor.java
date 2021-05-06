@@ -2,7 +2,6 @@ package vendedor;
 
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
@@ -86,7 +85,6 @@ public class Vendedor extends Agent {
 		@Override
 		protected void onTick() {
 			comprobarGanadores();
-
 			DFAgentDescription dfAgentDescription = new DFAgentDescription();
 			ServiceDescription serviceDescription = new ServiceDescription();
 			serviceDescription.setType("subasta-poxador");
@@ -104,12 +102,12 @@ public class Vendedor extends Agent {
 
 		private void comprobarGanadores() {
 			for (Subasta subasta : subastasDisponibles.values()) {
-				if (subasta.getInteresados().size() <= 1 && subasta.getGanadorActual() != null && !subasta.isFinalizada()) {
+				if (subasta.getInteresados().size() <= 1 && subasta.getGanadorActual() != null && subasta.getEstado()!= Subasta.EstadoSubasta.FINALIZADA) {
 
 
 					ACLMessage notificar = new ACLMessage(ACLMessage.REQUEST);
 					notificar.addReceiver(subasta.getGanadorActual());
-					notificar.setContent(String.format("%s;%d", subasta.getTitulo(), (subasta.prezoAnterior())));
+					notificar.setContent(String.format("%s;%d;%s", subasta.getTitulo(), subasta.prezoAnterior(),subasta.getGanadorActual().getName()));
 					myAgent.send(notificar);
 
 
@@ -118,15 +116,12 @@ public class Vendedor extends Agent {
 
 					
 					notificar = new ACLMessage(ACLMessage.INFORM);
-
-					System.out.println(	subasta.getInteresados().stream().filter(k->!k.equals(subasta.getGanadorActual())).map(AID::getName).collect(Collectors.joining(",")));
-
-					subasta.getInteresados().stream().filter(k->!k.equals(subasta.getGanadorActual())).forEach(notificar::addReceiver);
-					notificar.setContent(String.format("%s;%d", subasta.getTitulo(), (subasta.prezoAnterior())));
+					System.out.println(poxadoresDisponibles.stream().filter(k->!k.equals(subasta.getGanadorActual())).map(AID::getName).collect(Collectors.joining(", ")));
+					poxadoresDisponibles.stream().filter(k->!k.equals(subasta.getGanadorActual())).forEach(notificar::addReceiver);
+					notificar.setContent(String.format("%s;%d;%s", subasta.getTitulo(), subasta.prezoAnterior(),subasta.getGanadorActual().getName()));
 					myAgent.send(notificar);
 
-
-					subasta.setFinalizada(true);
+					subasta.setEstado(Subasta.EstadoSubasta.FINALIZADA);
 					subasta.setPrezo(subasta.prezoAnterior());
 					guiVendedor.actualizarSubasta(subasta);
 				}
@@ -134,8 +129,9 @@ public class Vendedor extends Agent {
 		}
 
 		private void enviarNotification() {
-			for (Subasta subasta : subastasDisponibles.values().stream().filter(s -> !s.isFinalizada()).collect(Collectors.toList())) {
+			for (Subasta subasta : subastasDisponibles.values().stream().filter(s -> s.getEstado()!= Subasta.EstadoSubasta.FINALIZADA).collect(Collectors.toList())) {
 				subasta.eliminarInteresados();
+				subasta.setEstado(Subasta.EstadoSubasta.ANUNCIADA);
 				imprimirMensaxe("Estase a subastar " + subasta.getTitulo() + " por " + subasta.getPrezo());
 				ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 				poxadoresDisponibles.forEach(cfp::addReceiver);

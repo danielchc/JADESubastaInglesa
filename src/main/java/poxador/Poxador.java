@@ -110,15 +110,15 @@ public class Poxador extends Agent {
 		ACLMessage proposta = resposta.createReply();
 		proposta.setContent(String.format("%s;%d", titulo, prezo));
 
-		if(!obxectivos.containsKey(titulo))return;
+		if (!obxectivos.containsKey(titulo)) return;
 
 		if (obxectivos.get(titulo).getPrezoMaximo() >= prezo) {
 			proposta.setPerformative(ACLMessage.PROPOSE);
 			myAgent.send(proposta);
-		}else{
+		} else {
 			obxectivos.get(titulo).setEstadoObxectivo(Obxectivo.EstadoObxectivo.RETIRADO);
 			guiPoxador.actualizarObxectivo(obxectivos.get(titulo));
-        }
+		}
 
 	}
 
@@ -134,15 +134,15 @@ public class Poxador extends Agent {
 		String ganador = contido[2];
 
 		obxectivo.setGanadorActual(ganador);
-        obxectivo.setPrezoActual(prezo);
+		obxectivo.setPrezoActual(prezo);
 
-        if (resposta.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
-            obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.EN_CABEZA);
-            imprimirMensaxe("Vas ganando a poxa " + titulo + " por " + prezo);
-        } else if (resposta.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
-            obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.PERDENDO);
-            imprimirMensaxe("Vas perdendo a poxa " + titulo + ". Vai ganando " + ganador + " por " + prezo);
-        }
+		if (resposta.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+			obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.GANANDO);
+			imprimirMensaxe("Vas ganando a poxa " + titulo + " por " + prezo);
+		} else if (resposta.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
+			obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.PERDENDO);
+			imprimirMensaxe("Vas perdendo a poxa " + titulo + ". Vai ganando " + ganador + " por " + prezo);
+		}
 
 		guiPoxador.actualizarObxectivo(obxectivo);
 
@@ -150,21 +150,23 @@ public class Poxador extends Agent {
 
 	private void propostaGanadora(String[] contido, ACLMessage resposta) {
 		String titulo = contido[0];
-		if (!obxectivos.containsKey(titulo)) return;
 		int prezo = Integer.parseInt(contido[1]);
-		Obxectivo obxectivo = obxectivos.get(titulo);
-		obxectivo.setPrezoActual(prezo);
+		String ganador = contido[2];
 
-		if(resposta.getPerformative()==ACLMessage.INFORM){
-			obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.PERDIDA);
-			imprimirMensaxe("Has perdido a poxa " + titulo + " por " + prezo);
-		}else if(resposta.getPerformative()==ACLMessage.REQUEST){
-			obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.GANADA);
+
+		if (resposta.getPerformative() == ACLMessage.INFORM) {
+			imprimirMensaxe("O poxador " + ganador + " ganou a poxa de " + titulo + " por " + prezo);
+		} else if (resposta.getPerformative() == ACLMessage.REQUEST) {
 			imprimirMensaxe("Ganaches a poxa " + titulo + " por " + prezo);
 		}
 
-
-
+		if (!obxectivos.containsKey(titulo))
+			return;
+		Obxectivo obxectivo = obxectivos.get(titulo);
+		obxectivo.setPrezoActual(prezo);
+		obxectivo.setEstadoObxectivo((resposta.getPerformative() == ACLMessage.INFORM) ? Obxectivo.EstadoObxectivo.PERDIDA : Obxectivo.EstadoObxectivo.GANADA);
+		obxectivo.setGanadorActual(ganador);
+		obxectivo.setPrezoActual(prezo);
 		guiPoxador.actualizarObxectivo(obxectivo);
 	}
 

@@ -77,8 +77,13 @@ public class Poxador extends Agent {
         public void action() {
             MessageTemplate mt = MessageTemplate.or(
                     MessageTemplate.MatchPerformative(ACLMessage.CFP),
-                    MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
-                    MessageTemplate.MatchPerformative(ACLMessage.REQUEST))
+                    MessageTemplate.or(
+                            MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
+                            MessageTemplate.or(
+                                    MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL),
+                                    MessageTemplate.MatchPerformative(ACLMessage.REQUEST)
+                            )
+                    )
             );
             ACLMessage resposta = myAgent.receive(mt);
 
@@ -88,7 +93,7 @@ public class Poxador extends Agent {
                     propostaPoxa(contido, resposta, myAgent);
                 else if (resposta.getPerformative() == ACLMessage.REQUEST)
                     propostaGanadora(contido, resposta);
-                else if (resposta.getPerformative() == ACLMessage.INFORM)
+                else if (resposta.getPerformative() == ACLMessage.ACCEPT_PROPOSAL || resposta.getPerformative() == ACLMessage.REJECT_PROPOSAL)
                     rondaFinalizada(contido, resposta);
             } else {
                 block();
@@ -123,15 +128,28 @@ public class Poxador extends Agent {
 
         Obxectivo obxectivo = obxectivos.get(titulo);
         int prezo = Integer.parseInt(contido[1]);
-        if (resposta.getConversationId().equals("subasta-ronda")) {
-            String ganador = contido[2];
-            imprimirMensaxe("Ganou a ronda de " + titulo + " o axente " + ganador + " por " + prezo);
-            obxectivo.setGanadorActual(ganador);
+
+
+
+        String ganador = contido[2];
+        obxectivo.setGanadorActual(ganador);
+        if (resposta.getPerformative()==ACLMessage.ACCEPT_PROPOSAL){
+            obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.EN_CABEZA);
+            imprimirMensaxe("Vas ganando a poxa " + titulo + " por " + prezo);
+        }else if (resposta.getPerformative()==ACLMessage.REJECT_PROPOSAL){
             obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.EN_CURSO);
-        } else if (resposta.getConversationId().equals("subasta-baixa")) {
+            imprimirMensaxe("Vas perdendo a poxa " + titulo + ". Vai ganando "+ganador+" por " + prezo);
+        }
+
+
+
+
+        if (resposta.getConversationId().equals("subasta-baixa")) {
             imprimirMensaxe("Retiramonos da poxa " + titulo + " cando se poxaba por " + prezo);
             obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.RETIRADO);
         }
+
+
 
         obxectivo.setPrezoActual(prezo);
         guiPoxador.actualizarObxectivo(obxectivo);

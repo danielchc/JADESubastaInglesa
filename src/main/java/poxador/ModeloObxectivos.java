@@ -51,7 +51,7 @@ public class ModeloObxectivos extends AbstractTableModel {
                 }
                 break;
             case 4:
-                resultado=new String[]{"Esperando","Ganada","En curso","Retirado"}[getByIndex(row).getEstadoObxectivo().ordinal()];
+                resultado=new String[]{"Esperando","Ganada","En curso","Retirado","En cabeza"}[getByIndex(row).getEstadoObxectivo().ordinal()];
                 break;
         }
         return resultado;

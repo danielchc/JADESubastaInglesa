@@ -5,8 +5,9 @@ public class Obxectivo {
         ESPERANDO,
         GANADA,
         EN_CURSO,
-        RETIRADO
-    }
+        RETIRADO,
+		EN_CABEZA;
+	}
     private String titulo;
     private int prezoMaximo;
     private int prezoActual;

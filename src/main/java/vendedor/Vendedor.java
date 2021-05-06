@@ -163,26 +163,27 @@ public class Vendedor extends Agent {
 			if (!subasta.getInteresados().contains(resposta.getSender()))
 				subasta.engadirInteresado(resposta.getSender());
 
+			ACLMessage notificacion = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
 
 			if (prezoRecibido.equals(subasta.getPrezo())) {
-				//ACCEPT PROPOSAL E REJECT PROPOSAL
 				subasta.setGanadorActual(resposta.getSender());
 				subasta.engadirIncremento();
+				notificacion.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 			}
 
-			guiVendedor.actualizarSubasta(subasta);
 
-			ACLMessage notificacion = new ACLMessage(ACLMessage.INFORM);
 			notificacion.addReceiver(resposta.getSender());
 			notificacion.setConversationId("subasta-ronda");
 			notificacion.setContent(String.format("%s;%d;%s", subasta.getTitulo(), subasta.prezoAnterior(), subasta.getGanadorActual().getName()));
 			myAgent.send(notificacion);
+
+			guiVendedor.actualizarSubasta(subasta);
+
 		}
 
 		private void retirarPoxador(ACLMessage resposta, Subasta subasta, Integer prezoRecibido) {
 
-			//Non ten sentido se non responden
-			subasta.eliminarInteresado(resposta.getSender());
+
 
 			if(!resposta.getConversationId().equals("subasta-baixa"))
 				return;

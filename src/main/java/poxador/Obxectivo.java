@@ -4,9 +4,10 @@ public class Obxectivo {
     public enum EstadoObxectivo {
         ESPERANDO,
         GANADA,
-        EN_CURSO,
-        RETIRADO,
-		EN_CABEZA;
+        PERDIDA,
+        EN_CABEZA,
+        PERDENDO,
+        RETIRADO;
 	}
     private String titulo;
     private int prezoMaximo;

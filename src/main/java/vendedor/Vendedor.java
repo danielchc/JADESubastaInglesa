@@ -105,14 +105,30 @@ public class Vendedor extends Agent {
 		private void comprobarGanadores() {
 			for (Subasta subasta : subastasDisponibles.values()) {
 				if (subasta.getInteresados().size() <= 1 && subasta.getGanadorActual() != null && !subasta.isFinalizada()) {
-					ACLMessage finalizacion = new ACLMessage(ACLMessage.REQUEST);
-					finalizacion.addReceiver(subasta.getGanadorActual());
-					finalizacion.setContent(String.format("%s;%d", subasta.getTitulo(), (subasta.prezoAnterior())));
+
+
+					ACLMessage notificar = new ACLMessage(ACLMessage.REQUEST);
+					notificar.addReceiver(subasta.getGanadorActual());
+					notificar.setContent(String.format("%s;%d", subasta.getTitulo(), (subasta.prezoAnterior())));
+					myAgent.send(notificar);
+
+
+
+					/*Informar o resto que non ganou*/
+
+					
+					notificar = new ACLMessage(ACLMessage.INFORM);
+
+					System.out.println(	subasta.getInteresados().stream().filter(k->!k.equals(subasta.getGanadorActual())).map(AID::getName).collect(Collectors.joining(",")));
+
+					subasta.getInteresados().stream().filter(k->!k.equals(subasta.getGanadorActual())).forEach(notificar::addReceiver);
+					notificar.setContent(String.format("%s;%d", subasta.getTitulo(), (subasta.prezoAnterior())));
+					myAgent.send(notificar);
+
+
 					subasta.setFinalizada(true);
 					subasta.setPrezo(subasta.prezoAnterior());
 					guiVendedor.actualizarSubasta(subasta);
-					myAgent.send(finalizacion);
-					//Informar o resto que son uns perdedores
 				}
 			}
 		}

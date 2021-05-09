@@ -71,9 +71,6 @@ public class Subasta {
 			this.interesados.add(poxador);
 	}
 
-	public void eliminarInteresado(AID poxador) {
-		this.interesados.remove(poxador);
-	}
 
 	public void eliminarInteresados() {
 		this.interesados.clear();

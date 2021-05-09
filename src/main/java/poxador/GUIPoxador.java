@@ -13,7 +13,6 @@ import static javax.swing.text.DefaultCaret.ALWAYS_UPDATE;
 
 public class GUIPoxador extends JFrame {
     private Poxador poxador;
-    private JButton btnEliminar;
     private JButton btnEngadir;
     private JFormattedTextField tfPrezo;
     private JLabel jLabel1;
@@ -43,7 +42,6 @@ public class GUIPoxador extends JFrame {
         tablaObxectivos = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
         taLog = new javax.swing.JTextArea();
-        btnEliminar = new javax.swing.JButton();
         btnEngadir = new javax.swing.JButton();
         tfPrezo = new javax.swing.JFormattedTextField();
         tfTitulo = new javax.swing.JTextField();
@@ -64,12 +62,6 @@ public class GUIPoxador extends JFrame {
         taLog.setRows(5);
         jScrollPane2.setViewportView(taLog);
 
-        btnEliminar.setText("Eliminar");
-        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-               eliminarDaLista();
-            }
-        });
 
         btnEngadir.setText("Engadir");
         btnEngadir.addActionListener(new java.awt.event.ActionListener() {
@@ -99,9 +91,6 @@ public class GUIPoxador extends JFrame {
                                         .addComponent(jScrollPane1)
                                         .addComponent(jScrollPane2)
                                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                .addGap(0, 0, Short.MAX_VALUE)
-                                                .addComponent(btnEliminar))
-                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                                 .addGap(37, 37, 37)
                                                 .addComponent(jLabel1)
                                                 .addGap(18, 18, 18)
@@ -127,8 +116,6 @@ public class GUIPoxador extends JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnEliminar)
-                                .addGap(13, 13, 13)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(btnEngadir)
                                         .addComponent(tfPrezo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)

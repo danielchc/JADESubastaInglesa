@@ -8,7 +8,6 @@ version '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
-    // Repositorio en el que está la dependencia de jade:
     maven{
         url 'https://jade.tilab.com/maven/'
     }
@@ -17,7 +16,6 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-    // Dependencia jade:
     implementation group: 'com.tilab.jade', name: 'jade', version: '4.5.0'
 }
 

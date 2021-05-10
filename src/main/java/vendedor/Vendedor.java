@@ -1,5 +1,10 @@
 package vendedor;
 
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -10,6 +15,11 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import ontologia.Oferta;
+import ontologia.Ofertar;
+import ontologia.SubastaOntology;
+import ontologia.impl.DefaultOferta;
+import ontologia.impl.DefaultOfertar;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +33,8 @@ public class Vendedor extends Agent {
 	private HashMap<String, Subasta> subastasDisponibles;
 	private ArrayList<AID> poxadoresDisponibles;
 	private GUIVendedor guiVendedor;
+	private SLCodec codec;
+	private Ontology onto;
 
 
 	private void imprimirMensaxe(String msg) {
@@ -45,6 +57,16 @@ public class Vendedor extends Agent {
 		this.subastasDisponibles = new HashMap<>();
 		this.poxadoresDisponibles = new ArrayList<>();
 		rexistrarServizo();
+
+
+		/* ONTOLOGIAS */
+
+		codec = new SLCodec();
+		onto = SubastaOntology.getInstance();
+		getContentManager().registerLanguage(codec);
+		getContentManager().registerOntology(onto);
+
+		/* ONTOLOGIAS */
 
 		guiVendedor = new GUIVendedor(this);
 		guiVendedor.setVisible(true);
@@ -89,7 +111,7 @@ public class Vendedor extends Agent {
 			for (Subasta subasta : subastasDisponibles.values()) {
 				if (subasta.getEstado() == Subasta.EstadoSubasta.FINALIZADA) continue;
 
-				imprimirMensaxe(String.format("Hai %d interesados en %s ",subasta.getInteresados().size(),subasta.getTitulo()));
+				imprimirMensaxe(String.format("Hai %d interesados en %s ", subasta.getInteresados().size(), subasta.getTitulo()));
 				if (subasta.getInteresados().size() <= 1 && subasta.getGanadorActual() != null) {
 					comprobarGanadores(subasta);
 				} else if (subasta.getInteresados().size() > 1) {
@@ -170,8 +192,19 @@ public class Vendedor extends Agent {
 				imprimirMensaxe(String.format("Anunciouse %s por %d", subasta.getTitulo(), subasta.getPrezo()));
 				cfp = new ACLMessage(ACLMessage.CFP);
 				poxadoresDisponibles.forEach(cfp::addReceiver);
-				cfp.setContent(String.format("%s;%d", subasta.getTitulo(), subasta.getPrezo()));
-//				cfp.setReplyWith("cfp" + System.currentTimeMillis());
+				cfp.setOntology(onto.getName());
+				cfp.setLanguage(codec.getName());
+				Oferta oferta = new DefaultOferta();
+				oferta.setTitulo(subasta.getTitulo());
+				oferta.setPrezo(subasta.getPrezo());
+				Ofertar ofertar = new DefaultOfertar();
+				ofertar.setOferta(oferta);
+				try {
+					getContentManager().fillContent(cfp, new Action(myAgent.getAID(),ofertar));
+				} catch (OntologyException | Codec.CodecException e) {
+					e.printStackTrace();
+				}
+
 				myAgent.send(cfp);
 			}
 		}

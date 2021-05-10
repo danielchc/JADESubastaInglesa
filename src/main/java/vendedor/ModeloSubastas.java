@@ -80,9 +80,4 @@ public class ModeloSubastas extends AbstractTableModel {
         subastas.replace(subasta.getTitulo(), subasta);
         fireTableDataChanged();
     }
-
-    public void eliminarSubasta(String subastaTitulo) {
-        subastas.remove(subastaTitulo);
-        fireTableDataChanged();
-    }
 }

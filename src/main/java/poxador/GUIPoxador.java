@@ -72,7 +72,7 @@ public class GUIPoxador extends JFrame {
 
         jLabel1.setText("Titulo");
 
-        jLabel2.setText("Prezo");
+        jLabel2.setText("Maximo");
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);

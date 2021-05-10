@@ -88,8 +88,9 @@ public class Vendedor extends Agent {
 		protected void onTick() {
 			for (Subasta subasta : subastasDisponibles.values()) {
 				if (subasta.getEstado() == Subasta.EstadoSubasta.FINALIZADA) continue;
+
 				imprimirMensaxe(String.format("Hai %d interesados en %s ",subasta.getInteresados().size(),subasta.getTitulo()));
-				if (subasta.getInteresados().size() <= 1) {
+				if (subasta.getInteresados().size() <= 1 && subasta.getGanadorActual() != null) {
 					comprobarGanadores(subasta);
 				} else if (subasta.getInteresados().size() > 1) {
 					comprobarRonda(subasta);
@@ -115,12 +116,8 @@ public class Vendedor extends Agent {
 		}
 
 		private void comprobarGanadores(Subasta subasta) {
-			if (subasta.getGanadorActual() == null && subasta.getInteresados().size()==0)return;
 
-			if(subasta.getInteresados().size()==1)
-				subasta.setGanadorActual(subasta.getInteresados().get(0));
-
-
+			System.out.println("Hola");
 			int prezo = (subasta.getInteresados().size() == 0) ? subasta.prezoAnterior() : subasta.getPrezo();
 
 			//Notificamos o ganador
@@ -146,7 +143,7 @@ public class Vendedor extends Agent {
 			AID aidActual = null;
 			Iterator<AID> poxadorIterator = subasta.getInteresados().iterator();
 			aidActual = poxadorIterator.next();
-			subasta.setGanadorActual(aidActual);
+			//subasta.setGanadorActual(aidActual);
 			imprimirMensaxe(String.format("O poxador %s aceptou a proposta %s por %d", aidActual.getName(), subasta.getTitulo(), subasta.getPrezo()));
 			subasta.engadirIncremento();
 
@@ -200,6 +197,8 @@ public class Vendedor extends Agent {
 				Subasta subasta = subastasDisponibles.get(titulo);
 				if (resposta.getPerformative() == ACLMessage.PROPOSE) {
 					subasta.engadirInteresado(resposta.getSender());
+					subasta.setGanadorActual(subasta.getInteresados().get(0));
+
 					guiVendedor.actualizarSubasta(subasta);
 				}
 

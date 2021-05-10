@@ -17,16 +17,16 @@ public class ModeloSubastas extends AbstractTableModel {
 
     @Override
     public String getColumnName(int col) {
-        return (new String[]{"Titulo","Prezo","Incremento","Ganador","Interesados","Estado"})[col];
+        return (new String[]{"Titulo","Prezo inicial","Incremento","Prezo Actual","Ganador","Interesados","Estado"})[col];
     }
 
     public Class getColumnClass(int col) {
-        return (new Class[]{String.class, Integer.class, Integer.class, String.class,Integer.class, String.class})[col];
+        return (new Class[]{String.class, Integer.class,Integer.class, Integer.class, String.class,Integer.class, String.class})[col];
     }
 
     @Override
     public int getColumnCount() {
-        return 6;
+        return 7;
     }
 
     @Override
@@ -37,22 +37,25 @@ public class ModeloSubastas extends AbstractTableModel {
                 resultado = getByIndex(row).getTitulo();
                 break;
             case 1:
-                resultado = getByIndex(row).getPrezo();
+                resultado = getByIndex(row).getPrezoInicial();
                 break;
             case 2:
                 resultado = getByIndex(row).getIncremento();
                 break;
             case 3:
+                resultado = getByIndex(row).getPrezo();
+                break;
+            case 4:
                 if (getByIndex(row).getGanadorActual() != null) {
                     resultado = getByIndex(row).getGanadorActual().getName().toString();
                 } else {
                     resultado = "<Sen ganador>";
                 }
                 break;
-            case 4:
+            case 5:
                 resultado = getByIndex(row).getInteresados().size();
                 break;
-            case 5:
+            case 6:
                 resultado = getByIndex(row).getEstado().toString();
                 break;
         }

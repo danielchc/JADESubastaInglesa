@@ -123,7 +123,7 @@ public class Poxador extends Agent {
 			//Se a subasta é demasiado elevada establezco o estado a retirado
 			obxectivos.get(titulo).setEstadoObxectivo(Obxectivo.EstadoObxectivo.RETIRADO);
 			guiPoxador.actualizarObxectivo(obxectivos.get(titulo));
-			imprimirMensaxe(String.format("Retirouse da poxa %s porque o precio actual e %d ",titulo,prezo));
+			imprimirMensaxe(String.format("O vendedor propuxo %s por %d, retiramonos!",titulo,prezo));
 		}
 
 	}

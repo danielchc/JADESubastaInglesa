@@ -86,16 +86,17 @@ public class Vendedor extends Agent {
 
 		@Override
 		protected void onTick() {
-			for (Subasta subasta:subastasDisponibles.values()){
-				if(subasta.getEstado() == Subasta.EstadoSubasta.FINALIZADA)continue;
-				if(subasta.getInteresados().size() <= 1){
+			for (Subasta subasta : subastasDisponibles.values()) {
+				if (subasta.getEstado() == Subasta.EstadoSubasta.FINALIZADA) continue;
+				imprimirMensaxe(String.format("Hai %d interesados en %s ",subasta.getInteresados().size(),subasta.getTitulo()));
+				if (subasta.getInteresados().size() <= 1) {
 					comprobarGanadores(subasta);
-				}else if (subasta.getInteresados().size()>1){
+				} else if (subasta.getInteresados().size() > 1) {
 					comprobarRonda(subasta);
 				}
+				guiVendedor.actualizarSubasta(subasta);
 				subasta.eliminarInteresados();
 			}
-
 
 
 			DFAgentDescription dfAgentDescription = new DFAgentDescription();
@@ -114,15 +115,13 @@ public class Vendedor extends Agent {
 		}
 
 		private void comprobarGanadores(Subasta subasta) {
-			System.out.println("Numero interesados "+subasta.getInteresados().size());
+			if (subasta.getGanadorActual() == null && subasta.getInteresados().size()==0)return;
 
-			if(subasta.getInteresados().size()==0 && subasta.getGanadorActual()==null)return;
-
-			if(subasta.getGanadorActual()==null && subasta.getInteresados().size()==1){
+			if(subasta.getInteresados().size()==1)
 				subasta.setGanadorActual(subasta.getInteresados().get(0));
-			}
 
-			int prezo = (subasta.getInteresados().size() == 0) ? subasta.prezoAnterior(): subasta.getPrezo();
+
+			int prezo = (subasta.getInteresados().size() == 0) ? subasta.prezoAnterior() : subasta.getPrezo();
 
 			//Notificamos o ganador
 			ACLMessage notificar = new ACLMessage(ACLMessage.REQUEST);
@@ -140,7 +139,6 @@ public class Vendedor extends Agent {
 			imprimirMensaxe(String.format("O poxador %s ganou a subasta de %s por %d", subasta.getGanadorActual().getName(), subasta.getTitulo(), prezo));
 			subasta.setEstado(Subasta.EstadoSubasta.FINALIZADA);
 			subasta.setPrezo(subasta.prezoAnterior());
-			guiVendedor.actualizarSubasta(subasta);
 
 		}
 
@@ -166,15 +164,14 @@ public class Vendedor extends Agent {
 				notificacion.setContent(String.format("%s;%d;%s", subasta.getTitulo(), subasta.prezoAnterior(), subasta.getGanadorActual().getName()));
 				myAgent.send(notificacion);
 			}
-			guiVendedor.actualizarSubasta(subasta);
-
 		}
 
 		private void enviarNotification() {
+			ACLMessage cfp;
 			for (Subasta subasta : subastasDisponibles.values().stream().filter(s -> s.getEstado() != Subasta.EstadoSubasta.FINALIZADA).collect(Collectors.toList())) {
 				subasta.setEstado(Subasta.EstadoSubasta.ANUNCIADA);
 				imprimirMensaxe(String.format("Anunciouse %s por %d", subasta.getTitulo(), subasta.getPrezo()));
-				ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+				cfp = new ACLMessage(ACLMessage.CFP);
 				poxadoresDisponibles.forEach(cfp::addReceiver);
 				cfp.setContent(String.format("%s;%d", subasta.getTitulo(), subasta.getPrezo()));
 //				cfp.setReplyWith("cfp" + System.currentTimeMillis());
@@ -196,14 +193,15 @@ public class Vendedor extends Agent {
 			if (resposta != null) {
 				String[] partes = resposta.getContent().split(";");
 				String titulo = partes[0];
-				Integer prezo = Integer.parseInt(partes[1]);
 
 				//Se non existe a subasta ignorase a peticion
 				if (!subastasDisponibles.containsKey(titulo)) return;
 
 				Subasta subasta = subastasDisponibles.get(titulo);
-				if (resposta.getPerformative() == ACLMessage.PROPOSE)
+				if (resposta.getPerformative() == ACLMessage.PROPOSE) {
 					subasta.engadirInteresado(resposta.getSender());
+					guiVendedor.actualizarSubasta(subasta);
+				}
 
 
 			} else {

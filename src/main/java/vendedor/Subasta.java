@@ -5,6 +5,8 @@ import jade.core.AID;
 import java.util.ArrayList;
 
 public class Subasta {
+	private final int prezoInicial;
+
 	public enum EstadoSubasta {
 		ESPERANDO,
 		ANUNCIADA,
@@ -21,6 +23,7 @@ public class Subasta {
 	public Subasta(String titulo, int prezo, int incremento) {
 		this.titulo = titulo;
 		this.prezo = prezo;
+		this.prezoInicial=prezo;
 		this.incremento = incremento;
 		this.interesados = new ArrayList<>();
 		this.estado = EstadoSubasta.ESPERANDO;
@@ -80,6 +83,9 @@ public class Subasta {
 		this.prezo += incremento;
 	}
 
+	public int getPrezoInicial() {
+		return prezoInicial;
+	}
 
 	public int prezoAnterior() {
 		return this.prezo - this.incremento;

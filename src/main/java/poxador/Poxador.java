@@ -16,6 +16,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import ontologia.SubastaOntology;
 import ontologia.impl.InformarRonda;
+import ontologia.impl.InformarVictoria;
 import ontologia.impl.Ofertar;
 import ontologia.impl.Proponer;
 
@@ -112,116 +113,104 @@ public class Poxador extends Agent {
 
 
 			ACLMessage resposta = myAgent.receive(mt);
-			Concept action = null;
-
-			if (resposta != null) {
-				if (resposta.getPerformative() == ACLMessage.CFP) {
-					try {
-						action = ((Action) getContentManager().extractContent(resposta)).getAction();
-					} catch (OntologyException | Codec.CodecException e) {
-						e.printStackTrace();
-					}
-					propostaPoxa(resposta, action, myAgent);
+			if(resposta!=null) {
+				Concept concept = null;
+				try {
+					concept = ((Action) getContentManager().extractContent(resposta)).getAction();
+				} catch (OntologyException | Codec.CodecException e) {
+					e.printStackTrace();
 				}
 
-				if (resposta.getPerformative() == ACLMessage.REQUEST || resposta.getPerformative() == ACLMessage.INFORM)
-					propostaGanadora(resposta.getContent().split(";"), resposta);
+				if (resposta.getPerformative() == ACLMessage.CFP) {
+					propostaPoxa(resposta, concept);
+				} else if (resposta.getPerformative() == ACLMessage.REQUEST || resposta.getPerformative() == ACLMessage.INFORM)
+					propostaGanadora(resposta, concept);
 				else if (resposta.getPerformative() == ACLMessage.ACCEPT_PROPOSAL || resposta.getPerformative() == ACLMessage.REJECT_PROPOSAL)
-					rondaFinalizada(resposta);
-			} else {
+					rondaFinalizada(resposta, concept);
+			}else{
 				block();
 			}
-
 		}
-	}
 
-	private void propostaPoxa(ACLMessage resposta, Concept action, Agent myAgent) {
+		private void propostaPoxa(ACLMessage resposta, Concept concept) {
+			Ofertar a = (Ofertar) concept;
+			if (!obxectivos.containsKey(a.getOfertaEnviar().getTitulo()))
+				return;
 
-		Ofertar a = (Ofertar) action;
-		ACLMessage proposta = resposta.createReply();
-		proposta.setOntology(onto.getName());
-		proposta.setLanguage(codec.getName());
+			ACLMessage proposta = resposta.createReply();
+			proposta.setOntology(onto.getName());
+			proposta.setLanguage(codec.getName());
+			if (obxectivos.get(a.getOfertaEnviar().getTitulo()).getPrezoMaximo() >= a.getOfertaEnviar().getPrezo()) {
+				imprimirMensaxe(String.format("O vendedor propuxo %s por %d, aceptamos ", a.getOfertaEnviar().getTitulo(), a.getOfertaEnviar().getPrezo()));
+				//Se aceptamos a proposta, enviamos o propose
 
+				Proponer proponer = new Proponer();
+				proponer.setPropostaOferta(a.getOfertaEnviar());
 
-		if (!obxectivos.containsKey(a.getOfertaEnviar().getTitulo())) return;
+				try {
+					getContentManager().fillContent(proposta, new Action(myAgent.getAID(), proponer));
+				} catch (OntologyException | Codec.CodecException e) {
+					e.printStackTrace();
+				}
+				proposta.setPerformative(ACLMessage.PROPOSE);
+				myAgent.send(proposta);
 
-		if (obxectivos.get(a.getOfertaEnviar().getTitulo()).getPrezoMaximo() >= a.getOfertaEnviar().getPrezo()) {
-			imprimirMensaxe(String.format("O vendedor propuxo %s por %d, aceptamos ", a.getOfertaEnviar().getTitulo(), a.getOfertaEnviar().getPrezo()));
-			//Se aceptamos a proposta, enviamos o propose
-
-			Proponer proponer = new Proponer();
-			proponer.setPropostaOferta(a.getOfertaEnviar());
-
-			try {
-				getContentManager().fillContent(proposta, new Action(myAgent.getAID(), proponer));
-			} catch (OntologyException | Codec.CodecException e) {
-				e.printStackTrace();
+			} else {
+				//Se a subasta é demasiado elevada establezco o estado a retirado
+				obxectivos.get(a.getOfertaEnviar().getTitulo()).setEstadoObxectivo(Obxectivo.EstadoObxectivo.RETIRADO);
+				guiPoxador.actualizarObxectivo(obxectivos.get(a.getOfertaEnviar().getTitulo()));
+				imprimirMensaxe(String.format("O vendedor propuxo %s por %d, retiramonos!", a.getOfertaEnviar().getTitulo(), a.getOfertaEnviar().getPrezo()));
 			}
-			proposta.setPerformative(ACLMessage.PROPOSE);
-			myAgent.send(proposta);
 
-		} else {
-			//Se a subasta é demasiado elevada establezco o estado a retirado
-			obxectivos.get(a.getOfertaEnviar().getTitulo()).setEstadoObxectivo(Obxectivo.EstadoObxectivo.RETIRADO);
-			guiPoxador.actualizarObxectivo(obxectivos.get(a.getOfertaEnviar().getTitulo()));
-			imprimirMensaxe(String.format("O vendedor propuxo %s por %d, retiramonos!", a.getOfertaEnviar().getTitulo(), a.getOfertaEnviar().getPrezo()));
 		}
 
+		private void rondaFinalizada(ACLMessage resposta,Concept concept) {
+			InformarRonda informarRonda = (InformarRonda) concept;
+			String titulo = informarRonda.getOfertaGanadoraRonda().getTitulo();
+			int prezo = informarRonda.getOfertaGanadoraRonda().getPrezo();
+			String ganador = informarRonda.getGanadorRonda().getName();
+
+			if (!obxectivos.containsKey(titulo)) return;
+
+
+			Obxectivo obxectivo = obxectivos.get(informarRonda.getOfertaGanadoraRonda().getTitulo());
+			obxectivo.setGanadorActual(ganador);
+			obxectivo.setPrezoActual(prezo);
+
+			if (resposta.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+				obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.GANANDO);
+				imprimirMensaxe("Vas ganando a poxa " + titulo + " por " + prezo);
+			} else if (resposta.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
+				obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.PERDENDO);
+				imprimirMensaxe("Vas perdendo a poxa " + titulo + ". Vai ganando " + ganador + " por " + prezo);
+			}
+
+			guiPoxador.actualizarObxectivo(obxectivo);
+		}
+
+		private void propostaGanadora(ACLMessage resposta, Concept concept) {
+			InformarVictoria informarVictoria =(InformarVictoria)concept;
+			String titulo = informarVictoria.getOfertaGanadora().getTitulo();
+			int prezo = informarVictoria.getOfertaGanadora().getPrezo();
+			String ganador = informarVictoria.getAgenteGanador().getName();
+
+
+			if (resposta.getPerformative() == ACLMessage.INFORM)
+				imprimirMensaxe("O poxador " + ganador + " ganou a poxa de " + titulo + " por " + prezo);
+			else if (resposta.getPerformative() == ACLMessage.REQUEST)
+				imprimirMensaxe("Ganaches a poxa " + titulo + " por " + prezo);
+
+
+			//Se se atopa na miña lista actualizoo
+			if (obxectivos.containsKey(titulo)){
+				Obxectivo obxectivo = obxectivos.get(titulo);
+				obxectivo.setPrezoActual(prezo);
+				obxectivo.setEstadoObxectivo((resposta.getPerformative() == ACLMessage.INFORM) ? Obxectivo.EstadoObxectivo.PERDIDA : Obxectivo.EstadoObxectivo.GANADA);
+				obxectivo.setGanadorActual(ganador);
+				obxectivo.setPrezoActual(prezo);
+				guiPoxador.actualizarObxectivo(obxectivo);
+			}
+		}
 	}
-
-	private void rondaFinalizada(ACLMessage resposta) {
-		InformarRonda informarRonda=null;
-		try {
-			informarRonda = (InformarRonda) ((Action) getContentManager().extractContent(resposta)).getAction();
-		} catch (OntologyException | Codec.CodecException e) {
-			e.printStackTrace();
-		}
-
-		String titulo=informarRonda.getOfertaGanadoraRonda().getTitulo();
-		int prezo= informarRonda.getOfertaGanadoraRonda().getPrezo();
-		String ganador = informarRonda.getGanadorRonda().getName();
-
-		if (!obxectivos.containsKey(titulo)) return;
-
-
-
-		Obxectivo obxectivo = obxectivos.get(informarRonda.getOfertaGanadoraRonda().getTitulo());
-		obxectivo.setGanadorActual(ganador);
-		obxectivo.setPrezoActual(prezo);
-
-		if (resposta.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
-			obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.GANANDO);
-			imprimirMensaxe("Vas ganando a poxa " + titulo + " por " + prezo);
-		} else if (resposta.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
-			obxectivo.setEstadoObxectivo(Obxectivo.EstadoObxectivo.PERDENDO);
-			imprimirMensaxe("Vas perdendo a poxa " + titulo + ". Vai ganando " + ganador + " por " + prezo);
-		}
-
-		guiPoxador.actualizarObxectivo(obxectivo);
-
-	}
-
-	private void propostaGanadora(String[] contido, ACLMessage resposta) {
-		String titulo = contido[0];
-		int prezo = Integer.parseInt(contido[1]);
-		String ganador = contido[2];
-
-
-		if (resposta.getPerformative() == ACLMessage.INFORM) {
-			imprimirMensaxe("O poxador " + ganador + " ganou a poxa de " + titulo + " por " + prezo);
-		} else if (resposta.getPerformative() == ACLMessage.REQUEST) {
-			imprimirMensaxe("Ganaches a poxa " + titulo + " por " + prezo);
-		}
-
-		if (!obxectivos.containsKey(titulo))
-			return;
-		Obxectivo obxectivo = obxectivos.get(titulo);
-		obxectivo.setPrezoActual(prezo);
-		obxectivo.setEstadoObxectivo((resposta.getPerformative() == ACLMessage.INFORM) ? Obxectivo.EstadoObxectivo.PERDIDA : Obxectivo.EstadoObxectivo.GANADA);
-		obxectivo.setGanadorActual(ganador);
-		obxectivo.setPrezoActual(prezo);
-		guiPoxador.actualizarObxectivo(obxectivo);
-	}
-
 
 }

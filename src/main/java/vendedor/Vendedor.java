@@ -141,8 +141,8 @@ public class Vendedor extends Agent {
 
 			InformarVictoria informarVictoria= new InformarVictoria();
 			Oferta oferta=new Oferta();
-			oferta.setTitulo(oferta.getTitulo());
-			oferta.setPrezo(oferta.getPrezo());
+			oferta.setTitulo(subasta.getTitulo());
+			oferta.setPrezo(prezo);
 			informarVictoria.setAgenteGanador(subasta.getGanadorActual());
 			informarVictoria.setOfertaGanadora(oferta);
 
@@ -151,29 +151,34 @@ public class Vendedor extends Agent {
 			notificar.addReceiver(subasta.getGanadorActual());
 			notificar.setOntology(onto.getName());
 			notificar.setLanguage(codec.getName());
-
-
-
-			myAgent.send(notificar);
-
-			//Notificamos a toda a sala
-			notificar = new ACLMessage(ACLMessage.INFORM);
-			poxadoresDisponibles.stream().filter(k -> !k.equals(subasta.getGanadorActual())).forEach(notificar::addReceiver);
-			notificar.setOntology(onto.getName());
-			notificar.setLanguage(codec.getName());
 			try {
 				getContentManager().fillContent(notificar, new Action(myAgent.getAID(), informarVictoria));
 			} catch (OntologyException | Codec.CodecException e) {
 				e.printStackTrace();
 			}
 
-
 			myAgent.send(notificar);
+
+
+
+			//Notificamos a toda a sala
+			notificar = new ACLMessage(ACLMessage.INFORM);
+			poxadoresDisponibles.stream().filter(k -> !k.equals(subasta.getGanadorActual())).forEach(notificar::addReceiver);
+			notificar.setOntology(onto.getName());
+			notificar.setLanguage(codec.getName());
+
+			try {
+				getContentManager().fillContent(notificar, new Action(myAgent.getAID(), informarVictoria));
+			} catch (OntologyException | Codec.CodecException e) {
+				e.printStackTrace();
+			}
+			myAgent.send(notificar);
+
 
 			//Actualizamos a subasta e a interface
 			imprimirMensaxe(String.format("O poxador %s ganou a subasta de %s por %d", subasta.getGanadorActual().getName(), subasta.getTitulo(), prezo));
 			subasta.setEstado(Subasta.EstadoSubasta.FINALIZADA);
-			subasta.setPrezo(subasta.prezoAnterior());
+			subasta.setPrezo(prezo);
 
 		}
 
@@ -205,17 +210,18 @@ public class Vendedor extends Agent {
 			}
 			myAgent.send(notificacion);
 
-
-			notificacion = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
-			notificacion.setLanguage(codec.getName());
-			notificacion.setOntology(onto.getName());
-			while (poxadorIterator.hasNext())notificacion.addReceiver(poxadorIterator.next());
-			try {
-				getContentManager().fillContent(notificacion, new Action(myAgent.getAID(), informarRonda));
-			} catch (OntologyException | Codec.CodecException e) {
-				e.printStackTrace();
+			if(poxadorIterator.hasNext()){
+				notificacion = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
+				notificacion.setLanguage(codec.getName());
+				notificacion.setOntology(onto.getName());
+				while (poxadorIterator.hasNext())notificacion.addReceiver(poxadorIterator.next());
+				try {
+					getContentManager().fillContent(notificacion, new Action(myAgent.getAID(), informarRonda));
+				} catch (OntologyException | Codec.CodecException e) {
+					e.printStackTrace();
+				}
+				myAgent.send(notificacion);
 			}
-			myAgent.send(notificacion);
 
 		}
 
@@ -270,7 +276,6 @@ public class Vendedor extends Agent {
 					subasta.setGanadorActual(subasta.getInteresados().get(0));
 					guiVendedor.actualizarSubasta(subasta);
 				}
-
 			} else {
 				block();
 			}

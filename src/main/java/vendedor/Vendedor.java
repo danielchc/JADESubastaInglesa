@@ -15,12 +15,10 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import ontologia.Oferta;
-import ontologia.Ofertar;
 import ontologia.SubastaOntology;
-import ontologia.impl.DefaultOferta;
-import ontologia.impl.DefaultOfertar;
+import ontologia.impl.*;
 
+import javax.management.Notification;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -139,19 +137,37 @@ public class Vendedor extends Agent {
 
 		private void comprobarGanadores(Subasta subasta) {
 
-			System.out.println("Hola");
 			int prezo = (subasta.getInteresados().size() == 0) ? subasta.prezoAnterior() : subasta.getPrezo();
+
+			InformarVictoria informarVictoria= new InformarVictoria();
+			Oferta oferta=new Oferta();
+			oferta.setTitulo(oferta.getTitulo());
+			oferta.setPrezo(oferta.getPrezo());
+			informarVictoria.setAgenteGanador(subasta.getGanadorActual());
+			informarVictoria.setOfertaGanadora(oferta);
 
 			//Notificamos o ganador
 			ACLMessage notificar = new ACLMessage(ACLMessage.REQUEST);
 			notificar.addReceiver(subasta.getGanadorActual());
-			notificar.setContent(String.format("%s;%d;%s", subasta.getTitulo(), prezo, subasta.getGanadorActual().getName()));
+			notificar.setOntology(onto.getName());
+			notificar.setLanguage(codec.getName());
+
+
+
 			myAgent.send(notificar);
 
 			//Notificamos a toda a sala
 			notificar = new ACLMessage(ACLMessage.INFORM);
 			poxadoresDisponibles.stream().filter(k -> !k.equals(subasta.getGanadorActual())).forEach(notificar::addReceiver);
-			notificar.setContent(String.format("%s;%d;%s", subasta.getTitulo(), prezo, subasta.getGanadorActual().getName()));
+			notificar.setOntology(onto.getName());
+			notificar.setLanguage(codec.getName());
+			try {
+				getContentManager().fillContent(notificar, new Action(myAgent.getAID(), informarVictoria));
+			} catch (OntologyException | Codec.CodecException e) {
+				e.printStackTrace();
+			}
+
+
 			myAgent.send(notificar);
 
 			//Actualizamos a subasta e a interface
@@ -165,24 +181,42 @@ public class Vendedor extends Agent {
 			AID aidActual = null;
 			Iterator<AID> poxadorIterator = subasta.getInteresados().iterator();
 			aidActual = poxadorIterator.next();
-			//subasta.setGanadorActual(aidActual);
+			subasta.setGanadorActual(aidActual);
 			imprimirMensaxe(String.format("O poxador %s aceptou a proposta %s por %d", aidActual.getName(), subasta.getTitulo(), subasta.getPrezo()));
 			subasta.engadirIncremento();
 
+			InformarRonda informarRonda= new InformarRonda();
+			Oferta oferta = new Oferta();
+			oferta.setTitulo(subasta.getTitulo());
+			oferta.setPrezo(subasta.getPrezo());
+			informarRonda.setOfertaGanadoraRonda(oferta);
+			informarRonda.setGanadorRonda(aidActual);
+
+
 			ACLMessage notificacion = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+			notificacion.setLanguage(codec.getName());
+			notificacion.setOntology(onto.getName());
 			notificacion.addReceiver(aidActual);
-			notificacion.setConversationId("subasta-ronda");
-			notificacion.setContent(String.format("%s;%d;%s", subasta.getTitulo(), subasta.prezoAnterior(), subasta.getGanadorActual().getName()));
+
+			try {
+				getContentManager().fillContent(notificacion, new Action(myAgent.getAID(), informarRonda));
+			} catch (OntologyException | Codec.CodecException e) {
+				e.printStackTrace();
+			}
 			myAgent.send(notificacion);
 
-			while (poxadorIterator.hasNext()) {
-				aidActual = poxadorIterator.next();
-				notificacion = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
-				notificacion.addReceiver(aidActual);
-				notificacion.setConversationId("subasta-ronda");
-				notificacion.setContent(String.format("%s;%d;%s", subasta.getTitulo(), subasta.prezoAnterior(), subasta.getGanadorActual().getName()));
-				myAgent.send(notificacion);
+
+			notificacion = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
+			notificacion.setLanguage(codec.getName());
+			notificacion.setOntology(onto.getName());
+			while (poxadorIterator.hasNext())notificacion.addReceiver(poxadorIterator.next());
+			try {
+				getContentManager().fillContent(notificacion, new Action(myAgent.getAID(), informarRonda));
+			} catch (OntologyException | Codec.CodecException e) {
+				e.printStackTrace();
 			}
+			myAgent.send(notificacion);
+
 		}
 
 		private void enviarNotification() {
@@ -194,11 +228,11 @@ public class Vendedor extends Agent {
 				poxadoresDisponibles.forEach(cfp::addReceiver);
 				cfp.setOntology(onto.getName());
 				cfp.setLanguage(codec.getName());
-				Oferta oferta = new DefaultOferta();
+				Oferta oferta = new Oferta();
 				oferta.setTitulo(subasta.getTitulo());
 				oferta.setPrezo(subasta.getPrezo());
-				Ofertar ofertar = new DefaultOfertar();
-				ofertar.setOferta(oferta);
+				Ofertar ofertar = new Ofertar();
+				ofertar.setOfertaEnviar(oferta);
 				try {
 					getContentManager().fillContent(cfp, new Action(myAgent.getAID(),ofertar));
 				} catch (OntologyException | Codec.CodecException e) {
@@ -208,7 +242,6 @@ public class Vendedor extends Agent {
 				myAgent.send(cfp);
 			}
 		}
-
 
 	}
 
@@ -220,26 +253,27 @@ public class Vendedor extends Agent {
 			mt = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
 
 			ACLMessage resposta = myAgent.receive(mt);
+			Proponer proponer=null;
 			if (resposta != null) {
-				String[] partes = resposta.getContent().split(";");
-				String titulo = partes[0];
+				try {
+					proponer=(Proponer)(((Action) getContentManager().extractContent(resposta)).getAction());
+				} catch (OntologyException|Codec.CodecException e) {
+					e.printStackTrace();
+				}
 
 				//Se non existe a subasta ignorase a peticion
-				if (!subastasDisponibles.containsKey(titulo)) return;
+				if (!subastasDisponibles.containsKey(proponer.getPropostaOferta().getTitulo())) return;
 
-				Subasta subasta = subastasDisponibles.get(titulo);
+				Subasta subasta = subastasDisponibles.get(proponer.getPropostaOferta().getTitulo());
 				if (resposta.getPerformative() == ACLMessage.PROPOSE) {
 					subasta.engadirInteresado(resposta.getSender());
 					subasta.setGanadorActual(subasta.getInteresados().get(0));
-
 					guiVendedor.actualizarSubasta(subasta);
 				}
-
 
 			} else {
 				block();
 			}
-
 		}
 	}
 

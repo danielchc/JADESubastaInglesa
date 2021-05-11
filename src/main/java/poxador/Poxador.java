@@ -14,8 +14,10 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import ontologia.Ofertar;
 import ontologia.SubastaOntology;
+import ontologia.impl.InformarRonda;
+import ontologia.impl.Ofertar;
+import ontologia.impl.Proponer;
 
 import java.util.HashMap;
 
@@ -116,9 +118,7 @@ public class Poxador extends Agent {
 				if (resposta.getPerformative() == ACLMessage.CFP) {
 					try {
 						action = ((Action) getContentManager().extractContent(resposta)).getAction();
-					} catch (Codec.CodecException e) {
-						e.printStackTrace();
-					} catch (OntologyException e) {
+					} catch (OntologyException | Codec.CodecException e) {
 						e.printStackTrace();
 					}
 					propostaPoxa(resposta, action, myAgent);
@@ -127,7 +127,7 @@ public class Poxador extends Agent {
 				if (resposta.getPerformative() == ACLMessage.REQUEST || resposta.getPerformative() == ACLMessage.INFORM)
 					propostaGanadora(resposta.getContent().split(";"), resposta);
 				else if (resposta.getPerformative() == ACLMessage.ACCEPT_PROPOSAL || resposta.getPerformative() == ACLMessage.REJECT_PROPOSAL)
-					rondaFinalizada(resposta.getContent().split(";"), resposta);
+					rondaFinalizada(resposta);
 			} else {
 				block();
 			}
@@ -138,39 +138,54 @@ public class Poxador extends Agent {
 	private void propostaPoxa(ACLMessage resposta, Concept action, Agent myAgent) {
 
 		Ofertar a = (Ofertar) action;
-		String titulo = a.getOferta().getTitulo();
-		int prezo = a.getOferta().getPrezo();
-
-
 		ACLMessage proposta = resposta.createReply();
-		proposta.setContent(String.format("%s;%d", titulo, prezo));
-		if (!obxectivos.containsKey(titulo)) return;
+		proposta.setOntology(onto.getName());
+		proposta.setLanguage(codec.getName());
 
-		if (obxectivos.get(titulo).getPrezoMaximo() >= prezo) {
-			imprimirMensaxe(String.format("O vendedor propuxo %s por %d, aceptamos ", titulo, prezo));
+
+		if (!obxectivos.containsKey(a.getOfertaEnviar().getTitulo())) return;
+
+		if (obxectivos.get(a.getOfertaEnviar().getTitulo()).getPrezoMaximo() >= a.getOfertaEnviar().getPrezo()) {
+			imprimirMensaxe(String.format("O vendedor propuxo %s por %d, aceptamos ", a.getOfertaEnviar().getTitulo(), a.getOfertaEnviar().getPrezo()));
 			//Se aceptamos a proposta, enviamos o propose
+
+			Proponer proponer = new Proponer();
+			proponer.setPropostaOferta(a.getOfertaEnviar());
+
+			try {
+				getContentManager().fillContent(proposta, new Action(myAgent.getAID(), proponer));
+			} catch (OntologyException | Codec.CodecException e) {
+				e.printStackTrace();
+			}
 			proposta.setPerformative(ACLMessage.PROPOSE);
 			myAgent.send(proposta);
+
 		} else {
 			//Se a subasta é demasiado elevada establezco o estado a retirado
-			obxectivos.get(titulo).setEstadoObxectivo(Obxectivo.EstadoObxectivo.RETIRADO);
-			guiPoxador.actualizarObxectivo(obxectivos.get(titulo));
-			imprimirMensaxe(String.format("O vendedor propuxo %s por %d, retiramonos!", titulo, prezo));
+			obxectivos.get(a.getOfertaEnviar().getTitulo()).setEstadoObxectivo(Obxectivo.EstadoObxectivo.RETIRADO);
+			guiPoxador.actualizarObxectivo(obxectivos.get(a.getOfertaEnviar().getTitulo()));
+			imprimirMensaxe(String.format("O vendedor propuxo %s por %d, retiramonos!", a.getOfertaEnviar().getTitulo(), a.getOfertaEnviar().getPrezo()));
 		}
 
 	}
 
-	private void rondaFinalizada(String[] contido, ACLMessage resposta) {
-		String titulo = contido[0];
+	private void rondaFinalizada(ACLMessage resposta) {
+		InformarRonda informarRonda=null;
+		try {
+			informarRonda = (InformarRonda) ((Action) getContentManager().extractContent(resposta)).getAction();
+		} catch (OntologyException | Codec.CodecException e) {
+			e.printStackTrace();
+		}
+
+		String titulo=informarRonda.getOfertaGanadoraRonda().getTitulo();
+		int prezo= informarRonda.getOfertaGanadoraRonda().getPrezo();
+		String ganador = informarRonda.getGanadorRonda().getName();
+
 		if (!obxectivos.containsKey(titulo)) return;
 
 
-		Obxectivo obxectivo = obxectivos.get(titulo);
-		int prezo = Integer.parseInt(contido[1]);
 
-
-		String ganador = contido[2];
-
+		Obxectivo obxectivo = obxectivos.get(informarRonda.getOfertaGanadoraRonda().getTitulo());
 		obxectivo.setGanadorActual(ganador);
 		obxectivo.setPrezoActual(prezo);
 

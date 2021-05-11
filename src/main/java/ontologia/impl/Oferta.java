@@ -6,19 +6,19 @@ import ontologia.*;
 /**
 * Protege name: Oferta
 * @author OntologyBeanGenerator v4.1
-* @version 2021/05/10, 18:20:01
+* @version 2021/05/11, 12:30:11
 */
-public class DefaultOferta implements Oferta {
+public class Oferta implements jade.content.Concept {
 
-  private static final long serialVersionUID = -5916493442331476618L;
+  private static final long serialVersionUID = 8268541762640966406L;
 
   private String _internalInstanceName = null;
 
-  public DefaultOferta() {
+  public Oferta() {
     this._internalInstanceName = "";
   }
 
-  public DefaultOferta(String instance_name) {
+  public Oferta(String instance_name) {
     this._internalInstanceName = instance_name;
   }
 

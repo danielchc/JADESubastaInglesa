@@ -3,14 +3,15 @@ package ontologia;
 
 import jade.content.onto.*;
 import jade.content.schema.*;
+import ontologia.impl.*;
 
 /** file: SubastaOntology.java
  * @author OntologyBeanGenerator v4.1
- * @version 2021/05/10, 18:20:01
+ * @version 2021/05/11, 12:30:11
  */
 public class SubastaOntology extends jade.content.onto.Ontology  {
 
-  private static final long serialVersionUID = -5916493442331476618L;
+  private static final long serialVersionUID = 8268541762640966406L;
 
   //NAME
   public static final String ONTOLOGY_NAME = "Subasta";
@@ -22,8 +23,16 @@ public class SubastaOntology extends jade.content.onto.Ontology  {
 
 
    // VOCABULARY
-    public static final String OFERTAR_OFERTA="oferta";
+    public static final String PROPONER_PROPOSTAOFERTA="propostaOferta";
+    public static final String PROPONER="Proponer";
+    public static final String OFERTAR_OFERTAENVIAR="ofertaEnviar";
     public static final String OFERTAR="Ofertar";
+    public static final String INFORMARVICTORIA_OFERTAGANADORA="ofertaGanadora";
+    public static final String INFORMARVICTORIA_AGENTEGANADOR="agenteGanador";
+    public static final String INFORMARVICTORIA="InformarVictoria";
+    public static final String INFORMARRONDA_GANADORRONDA="ganadorRonda";
+    public static final String INFORMARRONDA_OFERTAGANADORARONDA="ofertaGanadoraRonda";
+    public static final String INFORMARRONDA="InformarRonda";
     public static final String OFERTA_PREZO="prezo";
     public static final String OFERTA_TITULO="titulo";
     public static final String OFERTA="Oferta";
@@ -37,14 +46,17 @@ public class SubastaOntology extends jade.content.onto.Ontology  {
 
     // adding Concept(s)
     ConceptSchema ofertaSchema = new ConceptSchema(OFERTA);
-    add(ofertaSchema, ontologia.Oferta.class);
-    add(ofertaSchema, ontologia.impl.DefaultOferta.class);
+    add(ofertaSchema, Oferta.class);
 
-
-        // adding AgentAction(s)
+    // adding AgentAction(s)
+    AgentActionSchema informarRondaSchema = new AgentActionSchema(INFORMARRONDA);
+    add(informarRondaSchema, InformarRonda.class);
+    AgentActionSchema informarVictoriaSchema = new AgentActionSchema(INFORMARVICTORIA);
+    add(informarVictoriaSchema, InformarVictoria.class);
     AgentActionSchema ofertarSchema = new AgentActionSchema(OFERTAR);
-    add(ofertarSchema, ontologia.Ofertar.class);
-    add(ofertarSchema, ontologia.impl.DefaultOfertar.class);
+    add(ofertarSchema, Ofertar.class);
+    AgentActionSchema proponerSchema = new AgentActionSchema(PROPONER);
+    add(proponerSchema, Proponer.class);
 
     // adding AID(s)
 
@@ -54,7 +66,12 @@ public class SubastaOntology extends jade.content.onto.Ontology  {
     // adding fields
     ofertaSchema.add(OFERTA_TITULO, (TermSchema)getSchema(BasicOntology.STRING), ObjectSchema.MANDATORY);
     ofertaSchema.add(OFERTA_PREZO, (TermSchema)getSchema(BasicOntology.INTEGER), ObjectSchema.MANDATORY);
-    ofertarSchema.add(OFERTAR_OFERTA, ofertaSchema, ObjectSchema.MANDATORY);
+    informarRondaSchema.add(INFORMARRONDA_OFERTAGANADORARONDA, ofertaSchema, ObjectSchema.MANDATORY);
+    informarRondaSchema.add(INFORMARRONDA_GANADORRONDA, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.MANDATORY);
+    informarVictoriaSchema.add(INFORMARVICTORIA_AGENTEGANADOR, (ConceptSchema)getSchema(BasicOntology.AID), ObjectSchema.MANDATORY);
+    informarVictoriaSchema.add(INFORMARVICTORIA_OFERTAGANADORA, ofertaSchema, ObjectSchema.MANDATORY);
+    ofertarSchema.add(OFERTAR_OFERTAENVIAR, ofertaSchema, ObjectSchema.MANDATORY);
+    proponerSchema.add(PROPONER_PROPOSTAOFERTA, ofertaSchema, ObjectSchema.MANDATORY);
 
     // adding name mappings
 

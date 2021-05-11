@@ -272,9 +272,11 @@ public class Vendedor extends Agent {
 
 				Subasta subasta = subastasDisponibles.get(proponer.getPropostaOferta().getTitulo());
 				if (resposta.getPerformative() == ACLMessage.PROPOSE) {
-					subasta.engadirInteresado(resposta.getSender());
-					subasta.setGanadorActual(subasta.getInteresados().get(0));
-					guiVendedor.actualizarSubasta(subasta);
+					if(proponer.getPropostaOferta().getPrezo()>=subasta.getPrezo()){
+						subasta.engadirInteresado(resposta.getSender());
+						subasta.setGanadorActual(subasta.getInteresados().get(0));
+						guiVendedor.actualizarSubasta(subasta);
+					}
 				}
 			} else {
 				block();

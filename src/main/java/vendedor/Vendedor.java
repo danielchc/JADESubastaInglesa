@@ -18,7 +18,6 @@ import jade.lang.acl.MessageTemplate;
 import ontologia.SubastaOntology;
 import ontologia.impl.*;
 
-import javax.management.Notification;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -109,7 +108,9 @@ public class Vendedor extends Agent {
 			for (Subasta subasta : subastasDisponibles.values()) {
 				if (subasta.getEstado() == Subasta.EstadoSubasta.FINALIZADA) continue;
 
-				imprimirMensaxe(String.format("Hai %d interesados en %s ", subasta.getInteresados().size(), subasta.getTitulo()));
+				if (!subasta.getInteresados().isEmpty())
+					imprimirMensaxe(String.format("Hai %d interesados en %s ", subasta.getInteresados().size(), subasta.getTitulo()));
+
 				if (subasta.getInteresados().size() <= 1 && subasta.getGanadorActual() != null) {
 					comprobarGanadores(subasta);
 				} else if (subasta.getInteresados().size() > 1) {
@@ -139,8 +140,8 @@ public class Vendedor extends Agent {
 
 			int prezo = (subasta.getInteresados().size() == 0) ? subasta.prezoAnterior() : subasta.getPrezo();
 
-			InformarVictoria informarVictoria= new InformarVictoria();
-			Oferta oferta=new Oferta();
+			InformarVictoria informarVictoria = new InformarVictoria();
+			Oferta oferta = new Oferta();
 			oferta.setTitulo(subasta.getTitulo());
 			oferta.setPrezo(prezo);
 			informarVictoria.setAgenteGanador(subasta.getGanadorActual());
@@ -158,7 +159,6 @@ public class Vendedor extends Agent {
 			}
 
 			myAgent.send(notificar);
-
 
 
 			//Notificamos a toda a sala
@@ -190,7 +190,7 @@ public class Vendedor extends Agent {
 			imprimirMensaxe(String.format("O poxador %s aceptou a proposta %s por %d", aidActual.getName(), subasta.getTitulo(), subasta.getPrezo()));
 			subasta.engadirIncremento();
 
-			InformarRonda informarRonda= new InformarRonda();
+			InformarRonda informarRonda = new InformarRonda();
 			Oferta oferta = new Oferta();
 			oferta.setTitulo(subasta.getTitulo());
 			oferta.setPrezo(subasta.getPrezo());
@@ -210,11 +210,11 @@ public class Vendedor extends Agent {
 			}
 			myAgent.send(notificacion);
 
-			if(poxadorIterator.hasNext()){
+			if (poxadorIterator.hasNext()) {
 				notificacion = new ACLMessage(ACLMessage.REJECT_PROPOSAL);
 				notificacion.setLanguage(codec.getName());
 				notificacion.setOntology(onto.getName());
-				while (poxadorIterator.hasNext())notificacion.addReceiver(poxadorIterator.next());
+				while (poxadorIterator.hasNext()) notificacion.addReceiver(poxadorIterator.next());
 				try {
 					getContentManager().fillContent(notificacion, new Action(myAgent.getAID(), informarRonda));
 				} catch (OntologyException | Codec.CodecException e) {
@@ -226,6 +226,7 @@ public class Vendedor extends Agent {
 		}
 
 		private void enviarNotification() {
+			if (poxadoresDisponibles.isEmpty()) return;
 			ACLMessage cfp;
 			for (Subasta subasta : subastasDisponibles.values().stream().filter(s -> s.getEstado() != Subasta.EstadoSubasta.FINALIZADA).collect(Collectors.toList())) {
 				subasta.setEstado(Subasta.EstadoSubasta.ANUNCIADA);
@@ -240,7 +241,7 @@ public class Vendedor extends Agent {
 				Ofertar ofertar = new Ofertar();
 				ofertar.setOfertaEnviar(oferta);
 				try {
-					getContentManager().fillContent(cfp, new Action(myAgent.getAID(),ofertar));
+					getContentManager().fillContent(cfp, new Action(myAgent.getAID(), ofertar));
 				} catch (OntologyException | Codec.CodecException e) {
 					e.printStackTrace();
 				}
@@ -256,14 +257,20 @@ public class Vendedor extends Agent {
 
 		@Override
 		public void action() {
-			mt = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
+			mt = MessageTemplate.and(
+					MessageTemplate.MatchPerformative(ACLMessage.PROPOSE),
+					MessageTemplate.and(
+						MessageTemplate.MatchLanguage(codec.getName()),
+						MessageTemplate.MatchOntology(onto.getName())
+					)
+			);
 
 			ACLMessage resposta = myAgent.receive(mt);
-			Proponer proponer=null;
+			Proponer proponer = null;
 			if (resposta != null) {
 				try {
-					proponer=(Proponer)(((Action) getContentManager().extractContent(resposta)).getAction());
-				} catch (OntologyException|Codec.CodecException e) {
+					proponer = (Proponer) (((Action) getContentManager().extractContent(resposta)).getAction());
+				} catch (OntologyException | Codec.CodecException e) {
 					e.printStackTrace();
 				}
 
@@ -272,7 +279,7 @@ public class Vendedor extends Agent {
 
 				Subasta subasta = subastasDisponibles.get(proponer.getPropostaOferta().getTitulo());
 				if (resposta.getPerformative() == ACLMessage.PROPOSE) {
-					if(proponer.getPropostaOferta().getPrezo()>=subasta.getPrezo()){
+					if (proponer.getPropostaOferta().getPrezo() >= subasta.getPrezo()) {
 						subasta.engadirInteresado(resposta.getSender());
 						subasta.setGanadorActual(subasta.getInteresados().get(0));
 						guiVendedor.actualizarSubasta(subasta);

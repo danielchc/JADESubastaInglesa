@@ -97,19 +97,26 @@ public class Poxador extends Agent {
 	private class ConsultarSubastas extends CyclicBehaviour {
 		@Override
 		public void action() {
-			MessageTemplate mt = MessageTemplate.or(
-					MessageTemplate.MatchPerformative(ACLMessage.CFP),
+			MessageTemplate mt = MessageTemplate.and(
+					MessageTemplate.and(
+							MessageTemplate.MatchLanguage(codec.getName()),
+							MessageTemplate.MatchOntology(onto.getName())
+					),
 					MessageTemplate.or(
+							MessageTemplate.MatchPerformative(ACLMessage.CFP),
 							MessageTemplate.or(
-									MessageTemplate.MatchPerformative(ACLMessage.REQUEST),
-									MessageTemplate.MatchPerformative(ACLMessage.INFORM)
-							),
-							MessageTemplate.or(
-									MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
-									MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL)
+									MessageTemplate.or(
+											MessageTemplate.MatchPerformative(ACLMessage.REQUEST),
+											MessageTemplate.MatchPerformative(ACLMessage.INFORM)
+									),
+									MessageTemplate.or(
+											MessageTemplate.MatchPerformative(ACLMessage.ACCEPT_PROPOSAL),
+											MessageTemplate.MatchPerformative(ACLMessage.REJECT_PROPOSAL)
+									)
 							)
 					)
 			);
+
 
 
 			ACLMessage resposta = myAgent.receive(mt);

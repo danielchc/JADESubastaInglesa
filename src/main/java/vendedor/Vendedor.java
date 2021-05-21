@@ -18,6 +18,7 @@ import jade.lang.acl.MessageTemplate;
 import ontologia.SubastaOntology;
 import ontologia.impl.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -235,6 +236,7 @@ public class Vendedor extends Agent {
 				poxadoresDisponibles.forEach(cfp::addReceiver);
 				cfp.setOntology(onto.getName());
 				cfp.setLanguage(codec.getName());
+				cfp.setReplyWith("cfp" + System.currentTimeMillis());
 				Oferta oferta = new Oferta();
 				oferta.setTitulo(subasta.getTitulo());
 				oferta.setPrezo(subasta.getPrezo());
